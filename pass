@@ -1,0 +1,7 @@
+super admin username : superadmin@gmail.com
+passwoard : 1234
+
+kepala gudang username : kepalagudang@gmail.com
+passwoard : 1234
+
+run jpg acc : php artisan storage:link
