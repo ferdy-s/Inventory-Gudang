@@ -100,7 +100,7 @@
                         let supplier = getSupplierName(response.supplier, value.supplier_id);
                         let barangMasuk = `
                 <tr class="barang-row" id="index_${value.id}">
-                    <td>${counter++}</td>   
+                    <td>${counter++}</td>
                     <td>${value.kode_transaksi}</td>
                     <td>${value.tanggal_masuk}</td>
                     <td>${value.nama_barang}</td>
@@ -146,7 +146,7 @@
             $('#kode_transaksi').val(generateKodeTransaksi());
         });
 
-        $('#store').click(function(e) {
+     $('#store_jenis_barang').click(function(e) {
             e.preventDefault();
 
             let kode_transaksi = $('#kode_transaksi').val();
@@ -163,6 +163,7 @@
             formData.append('jumlah_masuk', jumlah_masuk);
             formData.append('supplier_id', supplier_id);
             formData.append('_token', token);
+            formData.append('user_id', {{ auth()->id() }});
 
             $.ajax({
                 url: '/barang-masuk',
@@ -195,7 +196,7 @@
                                     value.supplier_id);
                                 let barangMasuk = `
                                 <tr class="barang-row" id="index_${value.id}">
-                                    <td>${counter++}</td>   
+                                    <td>${counter++}</td>
                                     <td>${value.kode_transaksi}</td>
                                     <td>${value.tanggal_masuk}</td>
                                     <td>${value.nama_barang}</td>
@@ -322,7 +323,7 @@
                                             .supplier_id);
                                         let barangMasuk = `
                                         <tr class="barang-row" id="index_${value.id}">
-                                            <td>${counter++}</td>   
+                                            <td>${counter++}</td>
                                             <td>${value.kode_transaksi}</td>
                                             <td>${value.tanggal_masuk}</td>
                                             <td>${value.nama_barang}</td>

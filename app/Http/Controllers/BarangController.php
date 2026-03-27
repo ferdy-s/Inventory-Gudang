@@ -30,12 +30,19 @@ class BarangController extends Controller
 
     public function getDataBarang()
     {
-        $barangs = Barang::all();
+        try {
+            $barangs = Barang::all();
 
-        return response()->json([
-            'success'   => true,
-            'data'      => $barangs
-        ]);
+            return response()->json([
+                'success' => true,
+                'data' => $barangs
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 
 
@@ -55,56 +62,43 @@ class BarangController extends Controller
         $validator = Validator::make($request->all(), [
             'nama_barang'   => 'required',
             'deskripsi'     => 'required',
-            'gambar'        => 'required|mimes:jpeg,png,jpg',
+            'gambar'        => 'required|array|max:20',
+            'gambar.*'      => 'image|mimes:jpeg,png,jpg|max:2048',
             'stok_minimum'  => 'required|numeric',
             'jenis_id'      => 'required',
             'satuan_id'     => 'required'
-        ], [
-            'nama_barang.required'  => 'Form Nama Barang Wajib Di Isi !',
-            'deskripsi.required'    => 'Form Deskripsi Wajib Di Isi !',
-            'gambar.required'       => 'Tambahkan Gambar !',
-            'gambar.mimes'          => 'Gunakan Gambar Yang Memiliki Format jpeg, png, jpg !',
-            'stok_minimum.required' => 'Form Stok Minimum Wajib Di Isi !',
-            'stok_minimum.numeric'  => 'Gunakan Angka Untuk Mengisi Form Ini !',
-            'jenis_id.required'     => 'Pilih Jenis Barang !',
-            'satuan_id.required'    => 'Pilih Jenis Barang !'
-        ]);
-
-        if ($request->hasFile('gambar')) {
-            $path       = 'gambar-barang/';
-            $file       = $request->file('gambar');
-            $fileName   = $file->getClientOriginalName();
-            $gambar     = $file->storeAs($path, $fileName, 'public');
-        } else {
-            $gambar = null;
-        }
-
-        $kode_barang = 'BRG-' . str_pad(rand(1, 99999), 5, '0', STR_PAD_LEFT);
-        $request->merge([
-            'kode_barang'   => $kode_barang,
-            'gambar'        => $gambar,
-            'user_id'       => auth()->user()->id,
         ]);
 
         if ($validator->fails()) {
             return response()->json($validator->errors(), 422);
         }
 
+        $images = [];
+
+        if ($request->hasFile('gambar')) {
+            foreach ($request->file('gambar') as $file) {
+                $path = $file->store('gambar-barang', 'public');
+                $images[] = $path;
+            }
+        }
+
+        $kode_barang = 'PRPTY-' . str_pad(rand(1, 99999), 5, '0', STR_PAD_LEFT);
+
         $barang = Barang::create([
-            'nama_barang' => $request->nama_barang,
-            'deskripsi'   => $request->deskripsi,
-            'user_id'     => $request->user_id,
-            'kode_barang' => $request->kode_barang,
-            'gambar'      => $path . $fileName,
-            'stok_minimum' => $request->stok_minimum,
-            'jenis_id'    => $request->jenis_id,
-            'satuan_id'   => $request->satuan_id
+            'nama_barang'   => $request->nama_barang,
+            'deskripsi'     => $request->deskripsi,
+            'user_id'       => auth()->user()->id,
+            'kode_barang'   => $kode_barang,
+            'gambar'        => json_encode($images),
+            'stok_minimum'  => $request->stok_minimum,
+            'jenis_id'      => $request->jenis_id,
+            'satuan_id'     => $request->satuan_id
         ]);
 
         return response()->json([
-            'success'   => true,
-            'message'   => 'Data Berhasil Disimpan !',
-            'data'      => $barang
+            'success' => true,
+            'message' => 'Data Berhasil Disimpan!',
+            'data'    => $barang
         ]);
     }
 
@@ -113,10 +107,11 @@ class BarangController extends Controller
      */
     public function show(Barang $barang)
     {
+        $barang->load(['jenis', 'satuan']); // WAJIB
+
         return response()->json([
             'success' => true,
-            'message' => 'Detail Data Barang',
-            'data'    => $barang
+            'data' => $barang
         ]);
     }
 
@@ -140,53 +135,61 @@ class BarangController extends Controller
         $validator = Validator::make($request->all(), [
             'nama_barang'   => 'required',
             'deskripsi'     => 'required',
-            'gambar'        => 'nullable|mimes:jpeg,png,jpg',
+            'gambar'        => 'nullable|array|max:20',
+            'gambar.*'      => 'image|mimes:jpeg,png,jpg|max:2048',
             'stok_minimum'  => 'required|numeric',
             'jenis_id'      => 'required',
-            'satuan_id'      => 'required'
+            'satuan_id'     => 'required'
         ], [
             'nama_barang.required'  => 'Form Nama Barang Wajib Di Isi !',
             'deskripsi.required'    => 'Form Deskripsi Wajib Di Isi !',
-            'gambar.mimes'          => 'Gunakan Gambar Yang Memiliki Format jpeg, png, jpg !',
             'stok_minimum.required' => 'Form Stok Minimum Wajib Di Isi !',
-            'stok_minimum.numeric'  => 'Gunakan Angka Untuk Mengisi Form Ini !',
-            'jenis_id.required'     => 'Pilih Jenis Barang !',
-            'satuan_id.required'    => 'Pilih Satuan Barang !'
+            'stok_minimum.numeric'  => 'Gunakan Angka!',
+            'jenis_id.required'     => 'Pilih Jenis Barang!',
+            'satuan_id.required'    => 'Pilih Satuan Barang!',
+            'gambar.array'          => 'Harus multiple file!',
+            'gambar.max'            => 'Max 20 gambar!',
+            'gambar.*.image'        => 'Harus gambar!',
         ]);
-
-        // cek apakah gambar diubah atau tidak
-        if ($request->hasFile('gambar')) {
-            // hapus gambar lama
-            if ($barang->gambar) {
-                unlink('.' . Storage::url($barang->gambar));
-            }
-            $path       = 'gambar-barang/';
-            $file       = $request->file('gambar');
-            $fileName   = $file->getClientOriginalName();
-            $gambar     = $file->storeAs($path, $fileName, 'public');
-            $path      .= $fileName;
-        } else {
-            // jika tidak ada file gambar, gunakan gambar lama
-            $validator = Validator::make($request->all(), [
-                'nama_barang'   => 'required',
-                'deskripsi'     => 'required',
-                'stok_minimum'  => 'required|numeric',
-                'jenis_id'      => 'required',
-                'satuan_id'      => 'required'
-            ], [
-                'nama_barang.required'  => 'Form Nama Barang Wajib Di Isi !',
-                'deskripsi.required'    => 'Form Deskripsi Wajib Di Isi !',
-                'stok_minimum.required' => 'Form Stok Minimum Wajib Di Isi !',
-                'stok_minimum.numeric'  => 'Gunakan Angka Untuk Mengisi Form Ini !',
-                'jenis_id.required'     => 'Pilih Jenis Barang !',
-                'satuan_id.required'    => 'Pilih Satuan Barang !'
-            ]);
-
-            $path = $barang->gambar;
-        }
 
         if ($validator->fails()) {
             return response()->json($validator->errors(), 422);
+        }
+
+        // ambil gambar lama
+        $oldImages = [];
+
+        if ($barang->gambar) {
+            $decoded = json_decode($barang->gambar, true);
+
+            // jika JSON valid
+            if (is_array($decoded)) {
+                $oldImages = $decoded;
+            } else {
+                // fallback kalau masih single image lama
+                $oldImages = [$barang->gambar];
+            }
+        }
+        $images = $oldImages;
+
+        // jika upload baru
+        if ($request->hasFile('gambar')) {
+
+            // hapus lama
+            if (!empty($oldImages)) {
+                foreach ($oldImages as $img) {
+                    if (Storage::exists('public/' . $img)) {
+                        Storage::delete('public/' . $img);
+                    }
+                }
+            }
+
+            $images = [];
+
+            foreach ($request->file('gambar') as $file) {
+                $path = $file->store('gambar-barang', 'public');
+                $images[] = $path;
+            }
         }
 
         $barang->update([
@@ -194,15 +197,15 @@ class BarangController extends Controller
             'stok_minimum'  => $request->stok_minimum,
             'deskripsi'     => $request->deskripsi,
             'user_id'       => auth()->user()->id,
-            'gambar'        => $path,
+            'gambar'        => json_encode($images),
             'jenis_id'      => $request->jenis_id,
             'satuan_id'     => $request->satuan_id
         ]);
 
         return response()->json([
-            'success'   => true,
-            'message'   => 'Data Berhasil Terupdate',
-            'data'      => $barang
+            'success' => true,
+            'message' => 'Data Berhasil Diupdate',
+            'data'    => $barang
         ]);
     }
 
@@ -212,9 +215,20 @@ class BarangController extends Controller
      */
     public function destroy(Barang $barang)
     {
-        unlink('.' . Storage::url($barang->gambar));
+        // ambil semua gambar (array)
+        $images = json_decode($barang->gambar, true);
 
-        Barang::destroy($barang->id);
+        // cek dan hapus satu per satu
+        if ($images && is_array($images)) {
+            foreach ($images as $img) {
+                if (Storage::exists('public/' . $img)) {
+                    Storage::delete('public/' . $img);
+                }
+            }
+        }
+
+        // hapus data barang
+        $barang->delete();
 
         return response()->json([
             'success' => true,

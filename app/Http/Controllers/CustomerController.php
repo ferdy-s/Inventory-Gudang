@@ -43,18 +43,19 @@ class CustomerController extends Controller
         $validator = Validator::make($request->all(), [
             'customer'  => 'required',
             'alamat'    => 'required'
-        ],[
+        ], [
             'customer.required' => 'Form Customer Wajib Di Isi !',
             'alamat.required'   => 'Form Alamat Wajib Diisi'
         ]);
 
-        if($validator->fails()){
+        if ($validator->fails()) {
             return response()->json($validator->errors(), 422);
         }
 
         $customer = Customer::create([
             'customer'  => $request->customer,
             'alamat'    => $request->alamat,
+            'deskripsi' => $request->deskripsi,
             'user_id'   => auth()->user()->id
         ]);
 
@@ -92,19 +93,22 @@ class CustomerController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'customer'  => 'required',
-            'alamat'    => 'required'
-        ],[
+            'alamat'    => 'required',
+            'deskripsi' => 'nullable'
+        ], [
             'customer.required' => 'Form Customer Wajib Di Isi !',
-            'alamat.required'   => 'Form Alamat Wajib Diisi'
+            'alamat.required'   => 'Form Alamat Wajib Diisi',
+            'deskripsi.nullable' => 'Form Deskripsi Bisa Diisi Atau Tidak'
         ]);
 
-        if($validator->fails()){
+        if ($validator->fails()) {
             return response()->json($validator->errors(), 422);
         }
 
         $customer->update([
             'customer'  => $request->customer,
             'alamat'    => $request->alamat,
+            'deskripsi' => $request->deskripsi,
             'user_id'   => auth()->user()->id
         ]);
 

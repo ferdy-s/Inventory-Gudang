@@ -17,13 +17,13 @@
                   <input type="text" class="form-control" name="tanggal_masuk" id="tanggal_masuk">
                   <div class="alert alert-danger mt-2 d-none" role="alert" id="alert-tanggal_masuk"></div>
                 </div>
-    
+
                 <div class="form-group">
                   <label>Kode Transaksi</label>
                   <input type="text" class="form-control" name="kode_transaksi" id="kode_transaksi" readonly>
                   <div class="alert alert-danger mt-2 d-none" role="alert" id="alert-kode_transaksi"></div>
                 </div>
-    
+
                 <div class="form-group">
                   <label>Stok Saat Ini</label>
                   <input type="number" class="form-control" name="stok" id="stok" disabled>
@@ -56,7 +56,7 @@
                   </select>
                   <div class="alert alert-danger mt-2 d-none" role="alert" id="alert-supplier_id"></div>
                 </div>
-    
+
                 <div class="form-group">
                   <label>Jumlah Masuk</label>
                   <div class="input-group">
@@ -69,11 +69,11 @@
                 </div>
 
               </div>
-            </div>            
+            </div>
           </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-dismiss="modal">Keluar</button>
-          <button type="button" class="btn btn-primary" id="store">Tambah</button>
+          <button type="button" class="btn btn-primary" id="store_jenis_barang">Tambah</button>
         </div>
         </form>
       </div>

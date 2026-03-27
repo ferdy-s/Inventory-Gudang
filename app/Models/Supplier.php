@@ -12,7 +12,12 @@ class Supplier extends Model
     use HasFactory;
     use LogsActivity;
 
-    protected $fillable = ['supplier', 'alamat', 'user_id'];
+    protected $fillable = [
+        'supplier',
+        'alamat',
+        'deskripsi',
+        'user_id'
+    ];
     protected $guarded = [''];
     protected $ignoreChangedAttributes = ['updated_at'];
 
@@ -20,7 +25,7 @@ class Supplier extends Model
     public function getActivitylogAttributes(): array
     {
         return array_diff($this->fillable, $this->ignoreChangedAttributes);
-    }    
+    }
 
     // Activity Log
     public function getActivitylogOptions(): LogOptions

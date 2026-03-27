@@ -21,7 +21,7 @@
                         <option value="stok-habis">Stok Habis</option>
                     </select>
                 </div>
-                
+
             </div>
         </div>
         <div class="card">
@@ -32,7 +32,9 @@
                             <tr>
                                 <th>No</th>
                                 <th>Kode Barang</th>
+                                 <th>Jenis Barang</th>
                                 <th>Nama Barang</th>
+
                                 <th>Stok</th>
                             </tr>
                         </thead>
@@ -48,47 +50,51 @@
 
 <!-- Dropdown -->
 <script>
-    $(document).ready(function() {
-        var table = $('#table_id').DataTable({
-            paging: true
-        });
-
-        loadData('semua');
-
-        $('#opsi-laporan-stok').on('change', function(){
-            var selectedOption = $(this).val();
-            loadData(selectedOption);
-        });
-
-        function loadData(selectedOption) {
-            $.ajax({
-                url: '/laporan-stok/get-data',
-                type: 'GET',
-                data: { opsi: selectedOption },
-                success: function(response){
-                    table.clear().draw();
-
-                    let counter = 1;
-                    $.each(response, function(index, item) {
-                        var row = [
-                            counter++,
-                            item.kode_barang,
-                            item.nama_barang,
-                            item.stok
-                        ];
-                        table.row.add(row); // Menambahkan baris data ke DataTables
-                    });
-                    table.draw();
-                }
-            });
-
-        }
-
-        $('#print-stok').on('click', function(){
-            var selectedOption = $('#opsi-laporan-stok').val();
-            window.location.href = '/laporan-stok/print-stok?opsi=' + selectedOption;
-        });
+$(document).ready(function() {
+    var table = $('#table_id').DataTable({
+        paging: true,
+        ordering: true,
+        responsive: true
     });
+
+    loadData('semua');
+
+    $('#opsi-laporan-stok').on('change', function(){
+        var selectedOption = $(this).val();
+        loadData(selectedOption);
+    });
+
+    function loadData(selectedOption) {
+        $.ajax({
+            url: '/laporan-stok/get-data',
+            type: 'GET',
+            data: { opsi: selectedOption },
+            success: function(response){
+                table.clear().draw();
+
+                let counter = 1;
+                $.each(response, function(index, item) {
+                    var row = [
+                        counter++,
+                        item.kode_barang,
+                        item.jenis_barang ?? '-',
+                        item.nama_barang,
+                         // JENIS BARANG
+                        item.stok
+                    ];
+                    table.row.add(row);
+                });
+                table.draw();
+            }
+        });
+    }
+
+    $('#print-stok').on('click', function(){
+        var selectedOption = $('#opsi-laporan-stok').val();
+        window.location.href = '/laporan-stok/print-stok?opsi=' + selectedOption;
+    });
+});
 </script>
+
 
 @endsection

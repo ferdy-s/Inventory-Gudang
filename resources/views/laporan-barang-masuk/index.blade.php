@@ -13,24 +13,56 @@
     <div class="col-lg-12">
         <div class="card">
             <div class="card-body">
-                <div class="form-group">
-                    <form id="filter_form" action="/laporan-barang-masuk/get-data" method="GET">
-                        <div class="row">
-                            <div class="col-md-5">
-                                <label>Pilih Tanggal Mulai :</label>
-                                <input type="date" class="form-control" name="tanggal_mulai" id="tanggal_mulai">
-                            </div>
-                            <div class="col-md-5">
-                                <label>Pilih Tanggal Selesai :</label>
-                                <input type="date" class="form-control" name="tanggal_selesai" id="tanggal_selesai">
-                            </div>
-                            <div class="col-md-2 d-flex align-items-end">
-                                <button type="submit" class="btn btn-primary">Filter</button>
-                                <button type="button" class="btn btn-danger" id="refresh_btn">Refresh</button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
+                <form id="filter_form">
+  <div class="row">
+    <div class="col-md-3">
+      <label>Tanggal Mulai</label>
+      <input type="date" class="form-control" id="tanggal_mulai">
+    </div>
+
+    <div class="col-md-3">
+      <label>Tanggal Selesai</label>
+      <input type="date" class="form-control" id="tanggal_selesai">
+    </div>
+
+    <div class="col-md-3">
+      <label>Nama Barang</label>
+      <input type="text" class="form-control" id="nama_barang" placeholder="Cari nama barang">
+    </div>
+
+    <div class="col-md-3">
+      <label>Kode Transaksi</label>
+      <input type="text" class="form-control" id="kode_transaksi" placeholder="TRX-xxx">
+    </div>
+
+   <div class="col-md-3">
+    <label>Supplier</label>
+    <select class="form-control" id="supplier_id" name="supplier_id">
+        <option value="">-- Semua Supplier --</option>
+        @foreach ($suppliers as $s)
+            <option value="{{ $s->id }}">{{ $s->supplier }}</option>
+        @endforeach
+    </select>
+</div>
+
+
+    <div class="col-md-3 mt-2">
+      <label>Jumlah Min</label>
+      <input type="number" class="form-control" id="jumlah_min">
+    </div>
+
+    <div class="col-md-3 mt-2">
+      <label>Jumlah Max</label>
+      <input type="number" class="form-control" id="jumlah_max">
+    </div>
+
+    <div class="col-md-3 d-flex align-items-end mt-2">
+      <button type="submit" class="btn btn-primary mr-2">Filter</button>
+      <button type="button" class="btn btn-danger" id="refresh_btn">Reset</button>
+    </div>
+  </div>
+</form>
+
             </div>
         </div>
         <div class="card">
@@ -57,90 +89,112 @@
 </div>
 
 <script>
-    $(document).ready(function() {
-    var table = $('#table_id').DataTable({ paging: true }); // Simpan objek DataTable dalam variabel
+$(document).ready(function () {
 
-    loadData(); // Panggil fungsi loadData saat halaman dimuat
-
-    $('#filter_form').submit(function(event) {
-        event.preventDefault();
-        loadData(); // Panggil fungsi loadData saat tombol filter ditekan
+    // ===============================
+    // INIT DATATABLE
+    // ===============================
+    let table = $('#table_id').DataTable({
+        paging: true,
+        ordering: true,
+        searching: false,
+        autoWidth: false,
+        language: {
+            emptyTable: "Tidak ada data barang masuk"
+        }
     });
 
-    $('#refresh_btn').on('click', function() {
-        refreshTable();
-    });
-
-    // Fungsi load data berdasarkan range tanggal_mulai dan tanggal_selesai
+    // ===============================
+    // LOAD DATA
+    // ===============================
     function loadData() {
-        var tanggalMulai = $('#tanggal_mulai').val();
-        var tanggalSelesai = $('#tanggal_selesai').val();
-
         $.ajax({
             url: '/laporan-barang-masuk/get-data',
             type: 'GET',
             dataType: 'json',
             data: {
-                tanggal_mulai: tanggalMulai,
-                tanggal_selesai: tanggalSelesai
+                tanggal_mulai   : $('#tanggal_mulai').val(),
+                tanggal_selesai : $('#tanggal_selesai').val(),
+                nama_barang     : $('#nama_barang').val(),      // siap kalau mau dipakai
+                kode_transaksi  : $('#kode_transaksi').val(),   // siap
+                supplier_id     : $('#supplier_id').val(),      // siap
+                jumlah_min      : $('#jumlah_min').val(),       // siap
+                jumlah_max      : $('#jumlah_max').val()        // siap
             },
-            success: function(response) {
-                table.clear().draw(); // Hapus data yang sudah ada dari DataTable sebelum menambahkan data yang baru
+            success: function (response) {
+                table.clear();
 
-                if (response.length > 0) {
-                    $.each(response, function(index, item) {
-                        getSupplierName(item.supplier_id, function(supplier) {
-                            var row = [
-                                (index + 1),
-                                item.kode_transaksi,
-                                item.tanggal_masuk,
-                                item.nama_barang,
-                                item.jumlah_masuk,
-                                supplier
-                            ];
-                            table.row.add(row).draw(false); // Tambahkan data yang baru ke DataTable
-                        });
-                    });
-                } else {
-                    var emptyRow = ['','Tidak ada data yang tersedia.', '', '', '', '', ''];
-                    table.row.add(emptyRow).draw(false); // Tambahkan baris kosong ke DataTable
+                if (!response.length) {
+                    table.row.add([
+                        '',
+                        'Tidak ada data yang tersedia',
+                        '',
+                        '',
+                        '',
+                        ''
+                    ]).draw(false);
+                    return;
                 }
+
+                $.each(response, function (index, item) {
+                    table.row.add([
+                        index + 1,
+                        item.kode_transaksi,
+                        item.tanggal_masuk,
+                        item.nama_barang,
+                        item.jumlah_masuk,
+                        item.supplier ? item.supplier.supplier : '-'
+                    ]);
+                });
+
+                table.draw(false);
             },
-            error: function(xhr, status, error) {
-                console.log(error);
+            error: function (xhr) {
+                console.error('AJAX ERROR:', xhr.responseText);
             }
         });
-
-        function getSupplierName(supplierId, callback) {
-            $.getJSON('{{ url('api/supplier') }}', function(suppliers) {
-                var supplier = suppliers.find(function(s) {
-                    return s.id === supplierId;
-                });
-                callback(supplier ? supplier.supplier : '');
-            });
-        }
     }
 
-    // Fungsi Refresh Tabel
-    function refreshTable() {
+    // ===============================
+    // FILTER SUBMIT
+    // ===============================
+    $('#filter_form').on('submit', function (e) {
+        e.preventDefault();
+        loadData();
+    });
+
+    // ===============================
+    // RESET FILTER
+    // ===============================
+    $('#refresh_btn').on('click', function () {
         $('#filter_form')[0].reset();
         loadData();
-    }
-
-    // Print barang masuk
-    $('#print-barang-masuk').on('click', function() {
-        var tanggalMulai = $('#tanggal_mulai').val();
-        var tanggalSelesai = $('#tanggal_selesai').val();
-
-        var url = '/laporan-barang-masuk/print-barang-masuk';
-
-        if (tanggalMulai && tanggalSelesai) {
-            url += '?tanggal_mulai=' + tanggalMulai + '&tanggal_selesai=' + tanggalSelesai;
-        }
-
-        window.location.href = url;
     });
+
+    // ===============================
+    // PRINT PDF
+    // ===============================
+  $('#print-barang-masuk').on('click', function () {
+
+    let params = $.param({
+        tanggal_mulai   : $('#tanggal_mulai').val(),
+        tanggal_selesai : $('#tanggal_selesai').val(),
+        nama_barang     : $('#nama_barang').val(),
+        supplier_id     : $('#supplier_id').val()
+    });
+
+    window.open(
+        '/laporan-barang-masuk/print-barang-masuk?' + params,
+        '_blank'
+    );
 });
 
+
+    // ===============================
+    // LOAD AWAL
+    // ===============================
+    loadData();
+});
 </script>
+
 @endsection

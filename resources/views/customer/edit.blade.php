@@ -21,7 +21,10 @@
                 <textarea class="form-control" name="alamat" id="edit_alamat" rows="3"></textarea>
                 <div class="alert alert-danger mt-2 d-none" role="alert" id="alert-alamat"></div>
             </div>
-
+            <div class="form-group">
+                <label>Deskripsi</label>
+                <textarea class="form-control" name="deskripsi" id="edit_deskripsi" rows="3"></textarea>
+            </div>
         </div>
         <div class="modal-footer bg-whitesmoke br">
           <button type="button" class="btn btn-secondary" data-dismiss="modal">Keluar</button>

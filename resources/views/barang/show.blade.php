@@ -1,127 +1,251 @@
-<!-- Modal Detail Barang -->
-<div class="modal fade" id="modal_detail_barang" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
-    <div class="modal-content border-0 shadow-lg"
-      style="backdrop-filter: blur(12px); background: rgba(255,255,255,0.93); border-radius: 18px; font-family:'Poppins', sans-serif; font-weight:300; color:#333;">
+<div class="modal fade" id="modal_detail_barang" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-fullwidth">
+    <div class="modal-content modern-modal">
 
-      <!-- Header -->
-      <div class="modal-header border-0" style="background: rgba(250,250,250,0.8);">
-        <h5 class="modal-title" style="font-weight:300; font-size:18px; letter-spacing:0.5px;">Detail Data Barang</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="font-size:24px;">
-          <span aria-hidden="true">&times;</span>
-        </button>
+      <!-- HEADER -->
+      <div class="modal-header clean-header">
+        <h5>Detail Barang</h5>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
       </div>
 
-      <!-- Body -->
-      <div class="modal-body">
-        <input type="hidden" id="barang_id">
-        <div class="row">
-          <!-- Gambar -->
-          <div class="col-md-6 d-flex align-items-center justify-content-center">
-            <div class="text-center w-100">
-              <img src="" id="detail_gambar_preview"
-                class="img-fluid rounded shadow-sm"
-                style="max-height: 280px; border:1px solid #e0e0e0; object-fit:cover;">
+      <!-- BODY -->
+      <div class="modal-body clean-body">
+
+        <div class="layout-wrap">
+
+          <!-- LEFT -->
+          <div class="left-panel">
+
+            <div class="media-viewer">
+
+              <!-- SLIDER -->
+              <div id="slider_images" class="slider-track"></div>
+
+              <!-- NAV -->
+              <button class="nav prev" onclick="slideLeft()">‹</button>
+              <button class="nav next" onclick="slideRight()">›</button>
+
             </div>
+
+            <!-- 🔥 THUMBNAIL (JS nanti isi) -->
+            <div id="slider_thumbs" class="slider-thumbs"></div>
+
           </div>
 
-          <!-- Informasi Barang -->
-          <div class="col-md-6">
-            <div class="form-group mb-2">
-              <label style="font-weight:300;">Nama Barang</label>
-              <input type="text" class="form-control form-control-sm" id="detail_nama_barang" disabled>
+          <!-- RIGHT -->
+          <div class="right-panel">
+
+            <h2 id="detail_nama_barang" class="title-main">-</h2>
+
+            <div class="info-list">
+              <div><span>Jenis</span><span id="detail_jenis"></span></div>
+              <div><span>Satuan</span><span id="detail_satuan"></span></div>
+              <div><span>Stok</span><span id="detail_stok"></span></div>
+              <div><span>Min Stok</span><span id="detail_stok_minimum"></span></div>
             </div>
 
-            <div class="form-group mb-2">
-              <label style="font-weight:300;">Jenis Barang</label>
-              <select class="form-control form-control-sm" id="detail_jenis_id" disabled>
-                <option value="">-- Jenis Barang --</option>
-                @foreach ($jenis_barangs as $jenis)
-                  <option value="{{ $jenis->id }}">{{ $jenis->jenis_barang }}</option>
-                @endforeach
-              </select>
+            <div class="desc-section">
+              <div class="label">Deskripsi</div>
+              <div id="detail_deskripsi" class="desc-text"></div>
             </div>
 
-            <div class="form-group mb-2">
-              <label style="font-weight:300;">Satuan Barang</label>
-              <select class="form-control form-control-sm" id="detail_satuan_id" disabled>
-                <option value="">-- Satuan Barang --</option>
-                @foreach ($satuans as $satuan)
-                  <option value="{{ $satuan->id }}">{{ $satuan->satuan }}</option>
-                @endforeach
-              </select>
-            </div>
-
-            <div class="form-group mb-2">
-              <label style="font-weight:300;">Stok Saat Ini</label>
-              <input type="text" class="form-control form-control-sm" id="detail_stok" disabled>
-            </div>
-
-            <div class="form-group mb-2">
-              <label style="font-weight:300;">Stok Minimum</label>
-              <input type="number" class="form-control form-control-sm" id="detail_stok_minimum" disabled>
-            </div>
-
-            <div class="form-group mb-2">
-              <label style="font-weight:300;">Deskripsi</label>
-              <textarea class="form-control form-control-sm" id="detail_deskripsi" rows="3" disabled></textarea>
-            </div>
           </div>
+
         </div>
+
       </div>
 
-      <!-- Footer -->
-      <div class="modal-footer border-0" style="background: rgba(245,245,245,0.75);">
-        <button type="button" class="btn btn-primary px-4" data-dismiss="modal"
-          style="border-radius:8px; background:#4f46e5; border:none; font-weight:300;">
-          Tutup
-        </button>
+      <!-- FOOTER -->
+      <div class="modal-footer clean-footer">
+        <button class="btn btn-primary" data-dismiss="modal">Tutup</button>
       </div>
+
     </div>
   </div>
 </div>
 
-<!-- Modern 2025 Styles -->
 <style>
-  input.form-control, select.form-control, textarea.form-control {
-    border-radius: 10px;
-    border: 1px solid #ddd;
-    transition: all 0.3s ease;
-    font-weight: 300;
-    background: rgba(255,255,255,0.9);
-    color: #333;
-  }
-  input:disabled, select:disabled, textarea:disabled {
-    background: rgba(245,245,245,0.5);
-    color: #555;
-  }
-  input:focus, select:focus, textarea:focus {
-    border-color: #4f46e5;
-    box-shadow: 0 0 0 0.15rem rgba(79,70,229,0.25);
-  }
-  label {
-    color: #555;
-    font-size: 14px;
-  }
-  .modal-content {
-    animation: fadeZoomIn 0.35s ease;
-  }
-  @keyframes fadeZoomIn {
-    from { transform: scale(0.95); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
-  }
-</style>
+    :root {
+  --modal-max-width: 1500px;
+  --modal-padding: 20px;
+  --image-radius: 7px;
+}
 
-<!-- Script (optional, inisialisasi gambar detail) -->
-<script>
-  function showDetailBarang(data) {
-    $('#detail_nama_barang').val(data.nama_barang);
-    $('#detail_jenis_id').val(data.jenis_id);
-    $('#detail_satuan_id').val(data.satuan_id);
-    $('#detail_stok').val(data.stok ?? 'Stok Kosong');
-    $('#detail_stok_minimum').val(data.stok_minimum);
-    $('#detail_deskripsi').val(data.deskripsi);
-    $('#detail_gambar_preview').attr('src', '/storage/' + data.gambar);
-    $('#modal_detail_barang').modal('show');
+/* MODAL WIDTH */
+.modal-dialog.modal-fullwidth {
+  width: 85vw !important;
+  max-width: 1000px !important;
+  margin: auto;
+}
+
+/* MODAL */
+.modern-modal {
+  border-radius: 14px;
+  height: 88vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #fff;
+}
+
+/* HEADER */
+.clean-header {
+  padding: 16px var(--modal-padding);
+  border-bottom: 1px solid #eee;
+}
+
+/* BODY */
+.clean-body {
+  flex: 1;
+  padding: var(--modal-padding);
+  overflow: hidden;
+}
+
+/* LAYOUT */
+.layout-wrap {
+  display: flex;
+  gap: 40px;
+  height: 100%;
+}
+
+/* LEFT */
+.left-panel {
+  flex: 1.3;
+  display: flex;
+  flex-direction: column;
+}
+
+/* RIGHT */
+.right-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* IMAGE */
+.media-viewer {
+  width: 100%;
+  height: 100%;
+  border-radius: var(--image-radius);
+  overflow: hidden;
+  position: relative;
+  background: #f3f4f6;
+}
+
+/* 🔥 SLIDER FIX UTAMA */
+.slider-track {
+  display: flex;
+  height: 100%;
+  transition: transform 0.4s ease;
+}
+
+/* 🔥 INI YANG MENCEGAH SPLIT */
+.slider-img {
+  flex: 0 0 100%;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* NAV */
+.nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0,0,0,0.35);
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  opacity: 0;
+  transition: 0.2s;
+}
+
+.media-viewer:hover .nav {
+  opacity: 1;
+}
+
+.prev { left: 10px; }
+.next { right: 10px; }
+
+/* TITLE */
+.title-main {
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+
+/* INFO */
+.info-list div {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
+  font-size: 14px;
+}
+
+/* DESC */
+.desc-section {
+  margin-top: 20px;
+}
+
+.desc-section .label {
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.desc-text {
+  line-height: 1.7;
+  color: #444;
+}
+
+/* 🔥 THUMBNAIL */
+.slider-thumbs {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  overflow-x: auto;
+}
+
+.slider-thumbs img {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 6px;
+  opacity: 0.6;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.slider-thumbs img.active {
+  opacity: 1;
+  border: 2px solid #4f46e5;
+}
+
+/* FOOTER */
+.clean-footer {
+  border-top: 1px solid #eee;
+  padding: 14px var(--modal-padding);
+}
+
+/* MOBILE */
+@media (max-width: 992px) {
+
+  .modern-modal {
+    height: auto;
   }
-</script>
+
+  .layout-wrap {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .media-viewer {
+    height: 240px;
+  }
+
+  .title-main {
+    font-size: 18px;
+  }
+}
+</style>

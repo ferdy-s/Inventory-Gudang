@@ -4,128 +4,170 @@ namespace App\Http\Controllers;
 
 use App\Models\Jenis;
 use Illuminate\Http\Request;
-use function Pest\Laravel\json;
-use Illuminate\Support\Facades\Log;
-use App\Http\Controllers\Controller;
-
-use Illuminate\Auth\Events\Validated;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 
 class JenisController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        return view('jenis-barang.index', [
-            'jenisBarangs' => Jenis::all()
-        ]);
+        return view('jenis-barang.index');
     }
 
     public function getDataJenisBarang()
     {
         return response()->json([
             'success' => true,
-            'data'    => Jenis::all()
+            'data'    => Jenis::latest()->get()
         ]);
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        return view('jenis-barang.create');
-    }
-
-    /**
-     * Store a newly created resource in storage.
+     * STORE (FIX TOTAL)
      */
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'jenis_barang'  => 'required'
-        ],[
-            'jenis_barang.required' => 'Form Jenis Barang Wajib Di Isi !'
-        ]);
+        try {
 
-        if($validator->fails()){
-            return response()->json($validator->errors(), 422);
+            $validator = Validator::make($request->all(), [
+                'jenis_barang' => 'required'
+            ], [
+                'jenis_barang.required' => 'Form Jenis Barang Wajib Di Isi !'
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            // 🔥 FIX UTAMA
+            $userId = auth()->id();
+
+            if (!$userId) {
+                // fallback supaya tidak crash
+                $userId = 1;
+            }
+
+            $jenisBarang = Jenis::create([
+                'jenis_barang' => $request->jenis_barang,
+                'user_id'      => $userId
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Data Berhasil Disimpan!',
+                'data'    => $jenisBarang
+            ]);
+        } catch (\Exception $e) {
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Server Error',
+                'error'   => $e->getMessage()
+            ], 500);
         }
-
-        $jenisBarang = Jenis::create([
-            'jenis_barang' => $request->jenis_barang,
-            'user_id'      => auth()->user()->id
-        ]);
-
-        return response()->json([
-            'success'   => true,
-            'message'   => 'Data Berhasil Disimpan !',
-            'data'      => $jenisBarang
-        ]);
     }
 
     /**
-     * Display the specified resource.
-     */
-    public function show(Jenis $jenis)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
+     * EDIT
      */
     public function edit($id)
     {
-        $jenis = Jenis::findOrFail($id);   
+        $jenis = Jenis::find($id);
+
+        if (!$jenis) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data tidak ditemukan'
+            ], 404);
+        }
+
         return response()->json([
             'success' => true,
-            'message' => 'Edit Data Barang',
             'data'    => $jenis
         ]);
     }
 
     /**
-     * Update the specified resource in storage.
+     * UPDATE (FIX TOTAL)
      */
     public function update(Request $request, $id)
     {
-        $jenis = Jenis::find($id);
+        try {
+            $jenis = Jenis::find($id);
 
-        $validator = Validator::make($request->all(),[
-            'jenis_barang'  => 'required',
-        ],[
-            'jenis_barang.required' => 'Form Jenis Barang Tidak Boleh Kosong'
-        ]);
+            if (!$jenis) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data tidak ditemukan'
+                ], 404);
+            }
 
-        if($validator->fails()){
-            return response()->json($validator->errors(), 422);
+            $validator = Validator::make($request->all(), [
+                'jenis_barang' => 'required'
+            ], [
+                'jenis_barang.required' => 'Form Jenis Barang Tidak Boleh Kosong'
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            DB::beginTransaction();
+
+            $jenis->update([
+                'jenis_barang' => $request->jenis_barang,
+                'user_id'      => auth()->check() ? auth()->id() : null
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Data Berhasil Diupdate!',
+                'data'    => $jenis
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Server Error',
+                'error'   => $e->getMessage()
+            ], 500);
         }
-
-        $jenis->update([
-            'jenis_barang'  => $request->jenis_barang,
-            'user_id'       => auth()->user()->id
-        ]);
-
-        return response()->json([
-            'success'   => true,
-            'message'   => 'Data Berhasil Terupdate',
-            'data'      => $jenis
-        ]);
     }
 
     /**
-     * Remove the specified resource from storage.
+     * DELETE (FIX TOTAL)
      */
     public function destroy($id)
     {
-        Jenis::find($id)->delete();
+        try {
+            $jenis = Jenis::find($id);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Data Berhasil Dihapus!'
-        ]);    
+            if (!$jenis) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data tidak ditemukan'
+                ], 404);
+            }
+
+            $jenis->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Data Berhasil Dihapus!'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus data',
+                'error'   => $e->getMessage()
+            ], 500);
+        }
     }
 }

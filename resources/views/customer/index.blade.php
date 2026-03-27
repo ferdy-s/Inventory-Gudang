@@ -23,6 +23,7 @@
                                     <th>No</th>
                                     <th>Nama Customer</th>
                                     <th>Alamat</th>
+                                    <th>Deskripsi</th>
                                     <th>Opsi</th>
                                 </tr>
                             </thead>
@@ -50,9 +51,10 @@
                     $.each(response.data, function(key, value) {
                         let customer = `
                 <tr class="barang-row" id="index_${value.id}">
-                    <td>${counter++}</td>   
+                    <td>${counter++}</td>
                     <td>${value.customer}</td>
                     <td>${value.alamat}</td>
+                    <td>${value.deskripsi ?? '-'}</td>
                     <td>
                         <a href="javascript:void(0)" id="button_edit_customer" data-id="${value.id}" class="btn btn-icon btn-warning btn-lg mb-2"><i class="far fa-edit"></i> </a>
                         <a href="javascript:void(0)" id="button_hapus_customer" data-id="${value.id}" class="btn btn-icon btn-danger btn-lg mb-2"><i class="fas fa-trash"></i> </a>
@@ -72,7 +74,7 @@
             $('#modal_tambah_customer').modal('show');
         });
 
-        $('#store').click(function(e) {
+      $('body').on('click', '#store_customer', function(e) {
             e.preventDefault();
 
             let customer = $('#customer').val();
@@ -82,6 +84,7 @@
             let formData = new FormData();
             formData.append('customer', customer);
             formData.append('alamat', alamat);
+            formData.append('deskripsi', $('#deskripsi').val());
             formData.append('_token', token);
 
             $.ajax({
@@ -113,9 +116,10 @@
                             $.each(response.data, function(key, value) {
                                 let customer = `
                                 <tr class="barang-row" id="index_${value.id}">
-                                    <td>${counter++}</td>   
+                                    <td>${counter++}</td>
                                     <td>${value.customer}</td>
                                     <td>${value.alamat}</td>
+                                    <td>${value.deskripsi ?? '-'}</td>
                                     <td>
                                         <a href="javascript:void(0)" id="button_edit_customer" data-id="${value.id}" class="btn btn-icon btn-warning btn-lg mb-2"><i class="far fa-edit"></i> </a>
                                         <a href="javascript:void(0)" id="button_hapus_customer" data-id="${value.id}" class="btn btn-icon btn-danger btn-lg mb-2"><i class="fas fa-trash"></i> </a>
@@ -181,7 +185,7 @@
         });
 
         // Proses Update Data
-        $('#update').click(function(e) {
+     $('body').on('click', '#update', function(e) {
             e.preventDefault();
 
             let customer_id = $('#customer_id').val();
@@ -192,6 +196,7 @@
             let formData = new FormData();
             formData.append('customer', customer);
             formData.append('alamat', alamat);
+            formData.append('deskripsi', $('#edit_deskripsi').val());
             formData.append('_token', token);
             formData.append('_method', 'PUT');
 
@@ -216,6 +221,7 @@
                     let rowData = row.find('td');
                     rowData.eq(1).text(response.data.customer);
                     rowData.eq(2).text(response.data.alamat);
+                    rowData.eq(3).text(response.data.deskripsi ?? '-');
 
                     $('#modal_edit_customer').modal('hide');
                 },
@@ -283,9 +289,10 @@
                                     $.each(response.data, function(key, value) {
                                         let customer = `
                                         <tr class="barang-row" id="index_${value.id}">
-                                            <td>${counter++}</td>   
+                                            <td>${counter++}</td>
                                             <td>${value.customer}</td>
                                             <td>${value.alamat}</td>
+                                            <td>${value.deskripsi ?? '-'}</td>
                                             <td>
                                                 <a href="javascript:void(0)" id="button_edit_customer" data-id="${value.id}" class="btn btn-icon btn-warning btn-lg mb-2"><i class="far fa-edit"></i> </a>
                                                 <a href="javascript:void(0)" id="button_hapus_customer" data-id="${value.id}" class="btn btn-icon btn-danger btn-lg mb-2"><i class="fas fa-trash"></i> </a>

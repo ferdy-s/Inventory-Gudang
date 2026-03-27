@@ -19,7 +19,7 @@
         </div>
         <div class="modal-footer bg-whitesmoke br">
           <button type="button" class="btn btn-secondary" data-dismiss="modal">Keluar</button>
-          <button type="button" class="btn btn-primary" id="store">Tambah</button>
+          <button type="button" class="btn btn-primary" id="store_jenis_barang">Tambah</button>
         </div>
         </form>
       </div>

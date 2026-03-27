@@ -13,7 +13,10 @@ class Jenis extends Model
     use HasFactory;
     use LogsActivity;
 
-    protected $fillable = ['jenis_barang', 'user_id'];
+    protected $fillable = [
+        'jenis_barang',
+        'user_id'
+    ];
     protected $guarded = [''];
     protected $ignoreChangedAttributes = ['updated_at'];
 
@@ -21,7 +24,7 @@ class Jenis extends Model
     public function getActivitylogAttributes(): array
     {
         return array_diff($this->fillable, $this->ignoreChangedAttributes);
-    }    
+    }
 
     // Activity Log
     public function getActivitylogOptions(): LogOptions

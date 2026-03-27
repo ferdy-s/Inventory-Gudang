@@ -17,7 +17,7 @@
             <div class="col-md-6">
               <div class="form-group">
                 <label style="font-weight:300;">Gambar</label>
-                <input type="file" class="form-control form-control-sm" name="gambar" id="gambar" onchange="previewImage()" accept="image/*">
+                <input type="file" class="form-control form-control-sm" name="gambar[]" id="gambar" multiple onchange="previewImage()" accept="image/*">
                 <img src="" id="preview" class="img-fluid mt-3 d-none rounded" style="max-height:260px; border:1px solid #e0e0e0; object-fit:cover;">
                 <div class="alert alert-danger mt-2 d-none" id="alert-gambar" style="font-size:13px;"></div>
               </div>
@@ -58,7 +58,7 @@
 
               <div class="form-group mb-2">
                 <label style="font-weight:300;">Deskripsi</label>
-                <textarea class="form-control form-control-sm paste-enabled" name="deskripsi" id="deskripsi" placeholder="Tuliskan deskripsi barang..." rows="3"></textarea>
+                <textarea class="form-control form-control-sm" name="deskripsi" id="deskripsi" placeholder="Tuliskan deskripsi barang..." rows="3"></textarea>
                 <div class="alert alert-danger mt-2 d-none" id="alert-deskripsi" style="font-size:13px;"></div>
               </div>
             </div>
@@ -100,20 +100,27 @@
 </style>
 
 <script>
-  // ✅ Izinkan paste text dari luar ke semua input
-  document.addEventListener("DOMContentLoaded", function() {
-    document.querySelectorAll('.paste-enabled').forEach(el => {
-      el.addEventListener('paste', function(e) {
-        e.stopPropagation();
-        const text = (e.clipboardData || window.clipboardData).getData('text');
-        document.execCommand("insertText", false, text);
-        e.preventDefault();
-      });
-    });
-  });
+  // ❌ HAPUS TOTAL paste handler (INI PENTING)
+  // Browser default sudah BENAR untuk textarea
 
   // ✅ Preview image sebelum upload
   function previewImage() {
+    const files = document.getElementById('gambar').files;
+    const container = document.getElementById('preview_container');
+
+    container.innerHTML = '';
+
+    for (let i = 0; i < files.length; i++) {
+        let img = document.createElement('img');
+        img.src = URL.createObjectURL(files[i]);
+        img.style.width = '100px';
+        img.style.margin = '5px';
+        img.style.borderRadius = '6px';
+        img.style.objectFit = 'cover';
+
+        container.appendChild(img);
+    }
+}
     const file = document.getElementById('gambar').files[0];
     const preview = document.getElementById('preview');
     if (file) {
@@ -122,10 +129,24 @@
     }
   }
 
-  // ✅ Simpan Barang (AJAX)
+  // ✅ Simpan Barang (AJAX) — FIX FINAL
   $('#store').click(function(e) {
     e.preventDefault();
+
+    // 🔥 PAKSA BACA VALUE SEBENARNYA
+    const deskripsiValue = $('#deskripsi').val().trim();
+
+    if (deskripsiValue === '') {
+      $('#alert-deskripsi')
+        .removeClass('d-none')
+        .text('Form Deskripsi Wajib Di Isi !');
+      return;
+    }
+
     let formData = new FormData($('#form_tambah_barang')[0]);
+
+    // 🔥 PAKSA OVERRIDE DESKRIPSI (INI KUNCI)
+    formData.set('deskripsi', deskripsiValue);
     formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
 
     $.ajax({
@@ -135,7 +156,10 @@
       processData: false,
       contentType: false,
       beforeSend: function() {
-        $('#store').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Menyimpan...');
+        $('.alert').addClass('d-none');
+        $('#store')
+          .prop('disabled', true)
+          .html('<i class="fas fa-spinner fa-spin"></i> Menyimpan...');
       },
       success: function(res) {
         Swal.fire({
@@ -145,6 +169,7 @@
           timer: 1800,
           showConfirmButton: false
         });
+
         $('#modal_tambah_barang').modal('hide');
         $('#form_tambah_barang')[0].reset();
         $('#preview').addClass('d-none');
@@ -153,6 +178,7 @@
       },
       error: function(xhr) {
         $('#store').prop('disabled', false).html('Tambah');
+
         if (xhr.status === 422) {
           const errors = xhr.responseJSON;
           if (errors.nama_barang) $('#alert-nama_barang').removeClass('d-none').text(errors.nama_barang[0]);
@@ -160,7 +186,11 @@
           if (errors.deskripsi) $('#alert-deskripsi').removeClass('d-none').text(errors.deskripsi[0]);
           if (errors.gambar) $('#alert-gambar').removeClass('d-none').text(errors.gambar[0]);
         } else {
-          Swal.fire({ icon: 'error', title: 'Gagal', text: 'Terjadi kesalahan server.' });
+          Swal.fire({
+            icon: 'error',
+            title: 'Gagal',
+            text: 'Terjadi kesalahan server.'
+          });
         }
       }
     });

@@ -49,7 +49,7 @@
                     $.each(response.data, function(key, value) {
                         let jenisBarang = `
                 <tr class="barang-row" id="index_${value.id}">
-                    <td>${counter++}</td>   
+                    <td>${counter++}</td>
                     <td>${value.jenis_barang}</td>
                     <td>
                         <a href="javascript:void(0)" id="button_edit_jenis_barang" data-id="${value.id}" class="btn btn-icon btn-warning btn-lg mb-2"><i class="far fa-edit"></i> </a>
@@ -65,86 +65,94 @@
     </script>
 
     <!-- Show Modal Tambah Jenis Barang -->
-    <script>
-        $('body').on('click', '#button_tambah_jenis_barang', function() {
-            $('#modal_tambah_jenis_barang').modal('show');
-        });
+   <script>
+$('body').on('click', '#button_tambah_jenis_barang', function () {
+    $('#modal_tambah_jenis_barang').modal('show');
+});
 
-        $('#store').click(function(e) {
-            e.preventDefault();
+// ✅ gunakan ID unik (WAJIB)
+$('body').on('click', '#store_jenis_barang', function (e) {
+    e.preventDefault();
 
-            let jenis_barang = $('#jenis_barang').val();
-            let token = $("meta[name='csrf-token']").attr("content");
+    let jenis_barang = $('#jenis_barang').val().trim();
+    let token = $("meta[name='csrf-token']").attr("content");
 
-            let formData = new FormData();
-            formData.append('jenis_barang', jenis_barang);
-            formData.append('_token', token);
+    // validasi sederhana
+    if (!jenis_barang) {
+        Swal.fire('Warning', 'Jenis barang tidak boleh kosong', 'warning');
+        return;
+    }
 
-            $.ajax({
-                url: '/jenis-barang',
-                type: "POST",
-                cache: false,
-                data: formData,
-                contentType: false,
-                processData: false,
+    $.ajax({
+        url: '/jenis-barang',
+        type: "POST",
+        headers: {
+            'X-CSRF-TOKEN': token
+        },
+        data: {
+            jenis_barang: jenis_barang
+        },
 
-                success: function(response) {
-                    Swal.fire({
-                        type: 'success',
-                        icon: 'success',
-                        title: `${response.message}`,
-                        showConfirmButton: true,
-                        timer: 3000
-                    });
+        success: function (response) {
 
-                    $.ajax({
-                        url: '/jenis-barang/get-data',
-                        type: "GET",
-                        cache: false,
-                        success: function(response) {
-                            $('#table-barangs').html('');
-
-                            let counter = 1;
-                            $('#table_id').DataTable().clear();
-                            $.each(response.data, function(key, value) {
-                                let jenisBarang = `
-                                <tr class="barang-row" id="index_${value.id}">
-                                    <td>${counter++}</td>   
-                                    <td>${value.jenis_barang}</td>
-                                    <td>
-                                        <a href="javascript:void(0)" id="button_edit_jenis_barang" data-id="${value.id}" class="btn btn-icon btn-warning btn-lg mb-2"><i class="far fa-edit"></i> </a>
-                                        <a href="javascript:void(0)" id="button_hapus_jenis_barang" data-id="${value.id}" class="btn btn-icon btn-danger btn-lg mb-2"><i class="fas fa-trash"></i> </a>
-                                    </td>
-                                </tr>
-                             `;
-                                $('#table_id').DataTable().row.add($(jenisBarang))
-                                    .draw(false);
-                            });
-
-                            $('#jenis_barang').val('');
-                            $('#modal_tambah_jenis_barang').modal('hide');
-
-                            let table = $('#table_id').DataTable();
-                            table.draw(); // memperbarui Datatables
-                        },
-                        error: function(error) {
-                            console.log(error);
-                        }
-                    })
-                },
-
-                error: function(error) {
-                    if (error.responseJSON && error.responseJSON.jenis_barang && error.responseJSON
-                        .jenis_barang[0]) {
-                        $('#alert-jenis_barang').removeClass('d-none');
-                        $('#alert-jenis_barang').addClass('d-block');
-
-                        $('#alert-jenis_barang').html(error.responseJSON.jenis_barang[0]);
-                    }
-                }
+            Swal.fire({
+                icon: 'success',
+                title: response.message,
+                timer: 2000,
+                showConfirmButton: false
             });
-        });
-    </script>
+
+            // 🔥 langsung inject ke DataTable TANPA reload
+            let table = $('#table_id').DataTable();
+
+            table.row.add($(`
+                <tr id="index_${response.data.id}">
+                    <td></td>
+                    <td>${response.data.jenis_barang}</td>
+                    <td>
+                        <a href="javascript:void(0)"
+                           id="button_edit_jenis_barang"
+                           data-id="${response.data.id}"
+                           class="btn btn-warning btn-lg mb-2">
+                           <i class="far fa-edit"></i>
+                        </a>
+
+                        <a href="javascript:void(0)"
+                           id="button_hapus_jenis_barang"
+                           data-id="${response.data.id}"
+                           class="btn btn-danger btn-lg mb-2">
+                           <i class="fas fa-trash"></i>
+                        </a>
+                    </td>
+                </tr>
+            `)).draw(false);
+
+            // update nomor otomatis
+            table.rows().every(function (rowIdx) {
+                $(this.node()).find('td:eq(0)').html(rowIdx + 1);
+            });
+
+            // reset form
+            $('#jenis_barang').val('');
+            $('#modal_tambah_jenis_barang').modal('hide');
+        },
+
+        error: function (xhr) {
+            console.log(xhr.responseText);
+
+            if (xhr.responseJSON?.jenis_barang) {
+                $('#alert-jenis_barang')
+                    .removeClass('d-none')
+                    .addClass('d-block')
+                    .html(xhr.responseJSON.jenis_barang[0]);
+            } else {
+                Swal.fire('Error', 'Gagal menambahkan data', 'error');
+            }
+        }
+
+    });
+});
+</script>
 
     <!-- Edit Data Jenis Barang -->
     <script>
@@ -257,7 +265,7 @@
                                     $.each(response.data, function(key, value) {
                                         let jenisBarang = `
                                         <tr class="barang-row" id="index_${value.id}">
-                                            <td>${counter++}</td>   
+                                            <td>${counter++}</td>
                                             <td>${value.jenis_barang}</td>
                                             <td>
                                                 <a href="javascript:void(0)" id="button_edit_jenis_barang" data-id="${value.id}" class="btn btn-icon btn-warning btn-lg mb-2"><i class="far fa-edit"></i> </a>

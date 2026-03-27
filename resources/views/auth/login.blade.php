@@ -100,7 +100,7 @@
         animate();
     </script>
      <style>
-        /* === GLOBAL STYLE: High-Tech 2025 Warehouse Theme === */
+
         body {
             margin: 0;
             min-height: 100vh;

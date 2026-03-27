@@ -13,6 +13,7 @@
 
 # Sistem Informasi Inventory Gudang
 
+<<<<<<< HEAD
 **Dibuat oleh [Ferdy Salsabilla](https://github.com/ferdy-s)**  
 
 Sistem Informasi Inventory Gudang berbasis web adalah aplikasi yang digunakan untuk mengelola persediaan barang di gudang secara efisien dan terstruktur.  
@@ -56,13 +57,51 @@ Proyek ini dibangun menggunakan kombinasi teknologi berikut:
 | **jQuery** | Library JS untuk manipulasi DOM dan AJAX |
 | **Bootstrap** | Framework CSS untuk tampilan yang responsif dan mobile-first |
 
+=======
+Sistem Informasi Inventory Gudang Berbasis Web adalah aplikasi atau sistem yang digunakan untuk mengelola inventaris atau stok barang di dalam gudang melalui platform web. Sistem ini dirancang untuk memudahkan proses pengelolaan, pemantauan, dan pengendalian persediaan barang secara efisien.
+
+## Fitur
+
+- Data Master
+    1. Data Barang
+    2. Jenis
+    3. Satuan
+    4. Perusahaan
+        - Customer
+        - Supplier
+- Transaksi
+    1. Barang Masuk
+    2. Barang Keluar
+- Laporan
+    1. Laporan Stok (Print)
+    2. Laporan Barang Masuk (Print)
+    3. Laporan Barang Keluar (Print)
+- Manajemen User
+    1. Data Pengguna/User
+    2. Hak Akses/Role
+    3. Acitvity Log
+- Ubah Password
+
+## Teknologi
+
+Sistem Informasi Inventory Gudang menggunakan beberapa Teknologi diantaranya :
+
+- Laravel - The PHP Framework for Web Artisans
+- JavaScript - JavaScript, often abbreviated as JS, is a programming language that is one of the core technologies of the World Wide Web, alongside HTML and CSS.
+- jQuery - jQuery is a JavaScript framework designed to simplify HTML DOM tree traversal and manipulation, as well as event handling, CSS animation, and Ajax.
+- Bootstrap - Bootstrap is a free and open-source CSS framework directed at responsive, mobile-first front-end web development.
+>>>>>>> 8ac9dc6f (feat: update sistem inventory, perbaikan controller, model, dan UI)
 
 ## Cara Instalasi
 
+<<<<<<< HEAD
 ### Clone Repository
 ```bash
 git clone https://github.com/ferdy-s/inventorygudang.git
 Masuk ke direktori proyek:
+=======
+Lakukan Clone Project/Unduh manual
+>>>>>>> 8ac9dc6f (feat: update sistem inventory, perbaikan controller, model, dan UI)
 
 bash
 Copy code
@@ -81,6 +120,7 @@ inventorygudang
 Konfigurasi File .env
 Ubah nama file:
 
+<<<<<<< HEAD
 bash
 Copy code
 .env.example ➜ .env
@@ -104,6 +144,11 @@ Jalankan migrasi untuk membuat tabel:
 
 bash
 Copy code
+=======
+Kemudian, Ketik pada terminal :
+
+```sh
+>>>>>>> 8ac9dc6f (feat: update sistem inventory, perbaikan controller, model, dan UI)
 php artisan migrate
 Atau jika ingin mengatur ulang database dan menambahkan data contoh:
 
@@ -113,8 +158,14 @@ php artisan migrate:fresh --seed
 Jalankan Server Lokal
 Jalankan perintah berikut untuk menyalakan server:
 
+<<<<<<< HEAD
 bash
 Copy code
+=======
+Jalankan aplikasi
+
+```sh
+>>>>>>> 8ac9dc6f (feat: update sistem inventory, perbaikan controller, model, dan UI)
 php artisan serve
 Akses aplikasi melalui browser:
 
@@ -129,6 +180,7 @@ http://localhost:8000
 kun Login Default (Seeder)
 ```
 
+<<<<<<< HEAD
 Jika kamu menjalankan php artisan migrate:fresh --seed, maka akun default akan otomatis dibuat:
 
 Role	Email	Password
@@ -151,3 +203,10 @@ Admin	ferdysalsabilla87@gmail.com	ferdysal123
 
 
 
+=======
+Akses Aplikasi di Web browser
+
+```sh
+127.0.0.1:8000
+```
+>>>>>>> 8ac9dc6f (feat: update sistem inventory, perbaikan controller, model, dan UI)

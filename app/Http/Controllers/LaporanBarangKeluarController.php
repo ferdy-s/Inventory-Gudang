@@ -10,120 +10,66 @@ use App\Http\Controllers\Controller;
 
 class LaporanBarangKeluarController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        return view('laporan-barang-keluar.index');
+        return view('laporan-barang-keluar.index', [
+            'customers' => Customer::all()
+        ]);
     }
 
-    /**
-     * Get Data 
-     */
+
     public function getData(Request $request)
     {
-        $tanggalMulai = $request->input('tanggal_mulai');
-        $tanggalSelesai = $request->input('tanggal_selesai');
-    
-        $barangKeluar = BarangKeluar::query();
-    
-        if ($tanggalMulai && $tanggalSelesai) {
-            $barangKeluar->whereBetween('tanggal_keluar', [$tanggalMulai, $tanggalSelesai]);
-        }
-    
-        $data = $barangKeluar->get();
+        $query = BarangKeluar::with('customer');
 
-        if (empty($tanggalMulai) && empty($tanggalSelesai)) {
-            $data = BarangKeluar::all();
+        if ($request->filled('tanggal_mulai') && $request->filled('tanggal_selesai')) {
+            $query->whereBetween('tanggal_keluar', [
+                $request->tanggal_mulai,
+                $request->tanggal_selesai
+            ]);
         }
-    
-        return response()->json($data);
+
+        if ($request->filled('nama_barang')) {
+            $query->where('nama_barang', 'LIKE', '%' . $request->nama_barang . '%');
+        }
+
+        if ($request->filled('customer_id')) {
+            $query->where('customer_id', $request->customer_id);
+        }
+
+        return response()->json($query->get());
     }
 
-    /**
-     * Print DomPDF
-     */
+
+
     public function printBarangKeluar(Request $request)
     {
-        $tanggalMulai = $request->input('tanggal_mulai');
-        $tanggalSelesai = $request->input('tanggal_selesai');
-    
-        $barangKeluar = BarangKeluar::query();
-    
-        if ($tanggalMulai && $tanggalSelesai) {
-            $barangKeluar->whereBetween('tanggal_keluar', [$tanggalMulai, $tanggalSelesai]);
+        $query = BarangKeluar::with('customer');
+
+        if ($request->filled('tanggal_mulai') && $request->filled('tanggal_selesai')) {
+            $query->whereBetween('tanggal_keluar', [
+                $request->tanggal_mulai,
+                $request->tanggal_selesai
+            ]);
         }
-    
-        if ($tanggalMulai !== null && $tanggalSelesai !== null) {
-            $data = $barangKeluar->get();
-        } else {
-            $data = BarangKeluar::all();
+
+        if ($request->filled('nama_barang')) {
+            $query->where('nama_barang', 'LIKE', '%' . $request->nama_barang . '%');
         }
-        
-        //Generate PDF
-        $dompdf = new Dompdf();
-        $html = view('/laporan-barang-keluar/print-barang-keluar', compact('data', 'tanggalMulai', 'tanggalSelesai'))->render();
-        $dompdf->loadHtml($html);
-        $dompdf->setPaper('A4', 'landscape');
-        $dompdf->render();
-        $dompdf->stream('print-barang-keluar.pdf', ['Attachment' => false]);
-    }
 
-    /**
-     * Get Customer
-     */
-    public function getcustomer()
-    {
-        $customer = Customer::all();
-        return response()->json($customer);
-    }
+        if ($request->filled('customer_id')) {
+            $query->where('customer_id', $request->customer_id);
+        }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
+        $data = $query->get();
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        return view(
+            'laporan-barang-keluar.print-barang-keluar',
+            [
+                'data' => $data,
+                'tanggalMulai' => $request->tanggal_mulai,
+                'tanggalSelesai' => $request->tanggal_selesai
+            ]
+        );
     }
 }

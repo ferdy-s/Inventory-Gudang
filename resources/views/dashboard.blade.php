@@ -344,16 +344,17 @@ document.addEventListener('DOMContentLoaded', function () {
           borderSkipped: false
         },
         {
-          label: 'Barang Keluar',
-          data: [
-            @foreach($barangKeluarData as $data)
-              '{{ $data->total }}',
-            @endforeach
-          ],
-          backgroundColor: gradientRed,
-          borderRadius: 6,
-          borderSkipped: false
-        }
+  label: 'Barang Keluar',
+  data: [
+    @foreach($barangKeluarData as $data)
+      {{ $data->total }},
+    @endforeach
+  ],
+  backgroundColor: gradientRed,
+  borderRadius: 6,
+  borderSkipped: false
+}
+
       ]
     },
     options: {

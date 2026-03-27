@@ -2,80 +2,87 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>Laporan Barang Masuk</title>
+  <title>Laporan Barang Keluar</title>
+
   <style>
     @page {
       size: A4 portrait;
-      margin: 1.8cm;
+      margin: 2cm;
     }
 
     body {
-      font-family: Arial, sans-serif;
-      color: #222;
-      font-size: 12px;
-      background: #fff;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: #f4f6f8;
       margin: 0;
       padding: 0;
+      color: #222;
+      font-size: 12px;
+    }
+
+    /* ===== PAGE WRAPPER ===== */
+    .page-wrapper {
+      max-width: 900px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 24px 28px;
+      box-shadow: 0 0 0 rgba(0,0,0,0);
     }
 
     /* ===== HEADER ===== */
     h1 {
       text-align: center;
       font-size: 18px;
-      font-weight: bold;
-      color: #000;
-      margin-top: 8px;
-      margin-bottom: 2px;
+      margin: 0;
+      font-weight: 600;
+      letter-spacing: .3px;
     }
 
-    p {
+    .sub-title {
       text-align: center;
       font-size: 11.5px;
-      color: #444;
-      margin: 0 0 10px 0;
+      color: #666;
+      margin-top: 6px;
+      margin-bottom: 18px;
     }
 
     /* ===== TABLE ===== */
     table {
       width: 100%;
       border-collapse: collapse;
-      border: 1px solid #ccc;
       table-layout: fixed;
+      margin-top: 10px;
     }
 
     thead th {
-      background-color: #f2f2f2;
-      font-weight: bold;
-      text-align: center;
+      background: #f2f4f7;
       font-size: 12px;
-      padding: 6px 4px;
-      border: 1px solid #ccc;
+      font-weight: 600;
+      text-align: center;
+      padding: 8px 6px;
+      border: 1px solid #ddd;
       color: #111;
     }
 
     tbody td {
-      border: 1px solid #ddd;
-      padding: 5px 6px;
+      border: 1px solid #e1e1e1;
+      padding: 7px 6px;
       font-size: 11.5px;
-      font-weight: normal;
-      color: #333;
-      vertical-align: top;
       text-align: center;
+      color: #333;
     }
 
     tbody td:nth-child(4) {
       text-align: left;
-      padding-left: 6px;
-      width: 35%;
+      padding-left: 8px;
     }
 
     tbody tr:nth-child(even) {
-      background-color: #fafafa;
+      background: #fafafa;
     }
 
     /* ===== FOOTER ===== */
     .footer {
-      margin-top: 16px;
+      margin-top: 22px;
       font-size: 11px;
       text-align: right;
       color: #555;
@@ -84,22 +91,26 @@
     /* ===== PRINT ===== */
     @media print {
       body {
-        margin: 0;
+        background: #fff;
+      }
+
+      .page-wrapper {
+        max-width: 100%;
         padding: 0;
       }
 
       thead th {
-        background-color: #f2f2f2 !important;
+        background: #f2f4f7 !important;
         -webkit-print-color-adjust: exact;
       }
 
       tbody tr:nth-child(even) {
-        background-color: #f9f9f9 !important;
+        background: #fafafa !important;
       }
 
       .footer {
         position: fixed;
-        bottom: 12mm;
+        bottom: 14mm;
         right: 20mm;
       }
     }
@@ -107,42 +118,52 @@
 </head>
 
 <body>
-  <h1>Laporan Barang Masuk</h1>
 
-  @if ($tanggalMulai && $tanggalSelesai)
-    <p>Rentang Tanggal : {{ $tanggalMulai }} - {{ $tanggalSelesai }}</p>
-  @else
-    <p>Rentang Tanggal : Semua</p>
-  @endif
+  <div class="page-wrapper">
 
-  <table>
-    <thead>
-      <tr>
-        <th style="width:4%;">No</th>
-        <th style="width:16%;">Kode Transaksi</th>
-        <th style="width:11%;">Tanggal Keluar</th>
-        <th style="width:37%;">Nama Barang</th>
-        <th style="width:8%;">Jumlah</th>
-        <th style="width:24%;">Supplier</th>
-      </tr>
-    </thead>
-    <tbody>
-      @foreach($data as $index => $item)
-      <tr>
-        <td>{{ $index + 1 }}</td>
-        <td>{{ $item->kode_transaksi }}</td>
-        <td>{{ $item->tanggal_keluar }}</td>
-        <td>{{ $item->nama_barang }}</td>
-        <td>{{ $item->jumlah_keluar }}</td>
-        <td>{{ $item->customer->customer }}</td>
-      </tr>
-      @endforeach
-    </tbody>
-  </table>
+    <h1>Laporan Barang Keluar</h1>
 
-  <div class="footer">
-    Dicetak oleh: {{ auth()->user()->name }}<br>
-    Tanggal: {{ date('d-m-Y') }}
+    @if ($tanggalMulai && $tanggalSelesai)
+      <div class="sub-title">
+        Rentang Tanggal: {{ $tanggalMulai }} - {{ $tanggalSelesai }}
+      </div>
+    @else
+      <div class="sub-title">
+        Rentang Tanggal: Semua
+      </div>
+    @endif
+
+    <table>
+      <thead>
+        <tr>
+          <th style="width:5%">No</th>
+          <th style="width:16%">Kode Transaksi</th>
+          <th style="width:12%">Tanggal</th>
+          <th style="width:35%">Nama Barang</th>
+          <th style="width:8%">Jumlah</th>
+          <th style="width:24%">Customer</th>
+        </tr>
+      </thead>
+      <tbody>
+        @foreach($data as $index => $item)
+        <tr>
+          <td>{{ $index + 1 }}</td>
+          <td>{{ $item->kode_transaksi }}</td>
+          <td>{{ $item->tanggal_keluar }}</td>
+          <td>{{ $item->nama_barang }}</td>
+          <td>{{ $item->jumlah_keluar }}</td>
+          <td>{{ $item->customer->customer }}</td>
+        </tr>
+        @endforeach
+      </tbody>
+    </table>
+
+    <div class="footer">
+      Dicetak oleh: {{ auth()->user()->name }} <br>
+      Tanggal: {{ date('d-m-Y') }}
+    </div>
+
   </div>
+
 </body>
 </html>

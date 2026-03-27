@@ -12,7 +12,11 @@ class Customer extends Model
     use HasFactory;
     use LogsActivity;
 
-    protected $fillable = ['customer', 'alamat', 'user_id'];
+    protected $fillable = [
+        'customer',
+        'alamat',
+        'deskripsi'
+    ];
     protected $guarded = [''];
 
     protected $ignoreChangedAttributes = ['updated_at'];
@@ -21,7 +25,7 @@ class Customer extends Model
     public function getActivitylogAttributes(): array
     {
         return array_diff($this->fillable, $this->ignoreChangedAttributes);
-    }    
+    }
 
     // Activity Log
     public function getActivitylogOptions(): LogOptions

@@ -17,19 +17,19 @@
                   <input type="text" class="form-control" name="tanggal_keluar" id="tanggal_keluar">
                   <div class="alert alert-danger mt-2 d-none" role="alert" id="alert-tanggal_keluar"></div>
                 </div>
-    
+
                 <div class="form-group">
                   <label>Kode Transaksi</label>
                   <input type="text" class="form-control" name="kode_transaksi" id="kode_transaksi" readonly>
                   <div class="alert alert-danger mt-2 d-none" role="alert" id="alert-kode_transaksi"></div>
                 </div>
-    
+
                 <div class="form-group">
                   <label>Stok Saat Ini</label>
                   <input type="number" class="form-control" name="stok" id="stok" disabled>
                   <div class="alert alert-danger mt-2 d-none" role="alert" id="alert-stok"></div>
                 </div>
-                
+
               </div>
 
               <div class="col-md-6">
@@ -58,7 +58,7 @@
                   </select>
                   <div class="alert alert-danger mt-2 d-none" role="alert" id="alert-customer_id"></div>
                 </div>
-  
+
                 <div class="form-group">
                   <label>Jumlah Keluar</label>
                   <div class="input-group">
@@ -69,9 +69,9 @@
                     <div class="alert alert-danger mt-2 d-none" role="alert" id="alert-jumlah_keluar"></div>
                   </div>
                 </div>
-                
+
               </div>
-            </div>            
+            </div>
           </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-dismiss="modal">Keluar</button>

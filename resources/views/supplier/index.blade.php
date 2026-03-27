@@ -21,9 +21,10 @@
                             <thead>
                                 <tr>
                                     <th>No</th>
-                                    <th>Nama Perusahaan</th>
-                                    <th>Alamat</th>
-                                    <th>Opsi</th>
+<th>Nama Perusahaan</th>
+<th>Alamat</th>
+<th>Deskripsi</th> <!-- ✅ TAMBAH -->
+<th>Opsi</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -53,9 +54,10 @@
                     $.each(response.data, function(key, value) {
                         let supplier = `
                 <tr class="barang-row" id="index_${value.id}">
-                    <td>${counter++}</td>   
+                    <td>${counter++}</td>
                     <td>${value.supplier}</td>
                     <td>${value.alamat}</td>
+                    <td>${value.deskripsi ?? '-'}</td>
                     <td>
                         <a href="javascript:void(0)" id="button_edit_supplier" data-id="${value.id}" class="btn btn-icon btn-warning btn-lg mb-2"><i class="far fa-edit"></i> </a>
                         <a href="javascript:void(0)" id="button_hapus_supplier" data-id="${value.id}" class="btn btn-icon btn-danger btn-lg mb-2"><i class="fas fa-trash"></i> </a>
@@ -75,16 +77,18 @@
             $('#modal_tambah_supplier').modal('show');
         });
 
-        $('#store').click(function(e) {
+        $('body').on('click', '#store', function(e) {
             e.preventDefault();
 
             let supplier = $('#supplier').val();
             let alamat = $('#alamat').val();
+            let deskripsi = $('#deskripsi').val();
             let token = $("meta[name='csrf-token']").attr("content");
 
             let formData = new FormData();
             formData.append('supplier', supplier);
             formData.append('alamat', alamat);
+            formData.append('deskripsi', deskripsi);
             formData.append('_token', token);
 
             $.ajax({
@@ -116,9 +120,10 @@
                             $.each(response.data, function(key, value) {
                                 let supplier = `
                                 <tr class="barang-row" id="index_${value.id}">
-                                    <td>${counter++}</td>   
+                                    <td>${counter++}</td>
                                     <td>${value.supplier}</td>
                                     <td>${value.alamat}</td>
+                                    <td>${value.deskripsi ?? '-'}</td>
                                     <td>
                                         <a href="javascript:void(0)" id="button_edit_supplier" data-id="${value.id}" class="btn btn-icon btn-warning btn-lg mb-2"><i class="far fa-edit"></i> </a>
                                         <a href="javascript:void(0)" id="button_hapus_supplier" data-id="${value.id}" class="btn btn-icon btn-danger btn-lg mb-2"><i class="fas fa-trash"></i> </a>
@@ -177,7 +182,7 @@
                     $('#supplier_id').val(response.data.id);
                     $('#edit_supplier').val(response.data.supplier);
                     $('#edit_alamat').val(response.data.alamat);
-
+                    $('#edit_deskripsi').val(response.data.deskripsi);
                     $('#modal_edit_supplier').modal('show');
                 }
             });
@@ -190,11 +195,13 @@
             let supplier_id = $('#supplier_id').val();
             let supplier = $('#edit_supplier').val();
             let alamat = $('#edit_alamat').val();
+            let deskripsi = $('#edit_deskripsi').val();
             let token = $("meta[name='csrf-token']").attr('content');
 
             let formData = new FormData();
             formData.append('supplier', supplier);
             formData.append('alamat', alamat);
+            formData.append('deskripsi', deskripsi);
             formData.append('_token', token);
             formData.append('_method', 'PUT');
 
@@ -219,6 +226,7 @@
                     let rowData = row.find('td');
                     rowData.eq(1).text(response.data.supplier);
                     rowData.eq(2).text(response.data.alamat);
+                    rowData.eq(3).text(response.data.deskripsi ?? '-');
 
                     $('#modal_edit_supplier').modal('hide');
                 },
@@ -290,9 +298,10 @@
                                     $.each(response.data, function(key, value) {
                                         let supplier = `
                                         <tr class="barang-row" id="index_${value.id}">
-                                            <td>${counter++}</td>   
+                                            <td>${counter++}</td>
                                             <td>${value.supplier}</td>
                                             <td>${value.alamat}</td>
+                                            <td>${value.deskripsi ?? '-'}</td>
                                             <td>
                                                 <a href="javascript:void(0)" id="button_edit_supplier" data-id="${value.id}" class="btn btn-icon btn-warning btn-lg mb-2"><i class="far fa-edit"></i> </a>
                                                 <a href="javascript:void(0)" id="button_hapus_supplier" data-id="${value.id}" class="btn btn-icon btn-danger btn-lg mb-2"><i class="fas fa-trash"></i> </a>

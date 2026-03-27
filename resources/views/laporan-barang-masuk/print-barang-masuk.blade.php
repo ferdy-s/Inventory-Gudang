@@ -107,13 +107,16 @@
 </head>
 
 <body>
-  <h1>Laporan Barang Masuk</h1>
+ <h1>Laporan Barang Masuk</h1>
 
-  @if ($tanggalMulai && $tanggalSelesai)
-    <p>Rentang Tanggal : {{ $tanggalMulai }} - {{ $tanggalSelesai }}</p>
-  @else
-    <p>Rentang Tanggal : Semua</p>
-  @endif
+<p>
+    @if($tanggalMulai && $tanggalSelesai)
+        Rentang Tanggal : {{ $tanggalMulai }} - {{ $tanggalSelesai }}
+    @else
+        Rentang Tanggal : Semua
+    @endif
+</p>
+
 
   <table>
     <thead>
@@ -126,18 +129,25 @@
         <th style="width:24%;">Supplier</th>
       </tr>
     </thead>
-    <tbody>
-      @foreach($data as $index => $item)
-      <tr>
-        <td>{{ $index + 1 }}</td>
-        <td>{{ $item->kode_transaksi }}</td>
-        <td>{{ $item->tanggal_masuk }}</td>
-        <td>{{ $item->nama_barang }}</td>
-        <td>{{ $item->jumlah_masuk }}</td>
-        <td>{{ $item->supplier->supplier }}</td>
-      </tr>
-      @endforeach
-    </tbody>
+  <tbody>
+@forelse($data as $index => $item)
+<tr>
+    <td>{{ $index + 1 }}</td>
+    <td>{{ $item->kode_transaksi }}</td>
+    <td>{{ $item->tanggal_masuk }}</td>
+    <td>{{ $item->nama_barang }}</td>
+    <td>{{ $item->jumlah_masuk }}</td>
+    <td>{{ $item->supplier->supplier ?? '-' }}</td>
+</tr>
+@empty
+<tr>
+    <td colspan="6" style="text-align:center;">
+        Tidak ada data sesuai filter
+    </td>
+</tr>
+@endforelse
+</tbody>
+
   </table>
 
   <div class="footer">

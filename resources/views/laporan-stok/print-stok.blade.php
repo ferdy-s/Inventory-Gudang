@@ -39,7 +39,9 @@
             <tr>
                 <th>No</th>
                 <th>Kode Barang</th>
+                 <th>Jenis Barang</th>
                 <th>Nama Barang</th>
+
                 <th>Stok</th>
             </tr>
         </thead>
@@ -48,7 +50,9 @@
             <tr>
                 <td>{{ $index + 1 }}</td>
                 <td>{{ $barang->kode_barang }}</td>
+                  <td>{{ $barang->jenis->jenis_barang ?? '-' }}</td>
                 <td>{{ $barang->nama_barang }}</td>
+
                 <td>{{ $barang->stok}}  {{ $barang->satuan->satuan }}</td>
             </tr>
             @endforeach

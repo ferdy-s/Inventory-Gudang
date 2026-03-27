@@ -19,7 +19,7 @@ class BarangMasuk extends Model
     public function getActivitylogAttributes(): array
     {
         return array_diff($this->fillable, $this->ignoreChangedAttributes);
-    }    
+    }
 
     // Activity Log
     public function getActivitylogOptions(): LogOptions
@@ -34,5 +34,4 @@ class BarangMasuk extends Model
     {
         return $this->belongsTo(Supplier::class, 'supplier_id');
     }
-
 }

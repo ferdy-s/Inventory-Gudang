@@ -20,6 +20,10 @@ class Barang extends Model
     protected $guarded = [''];
     protected $ignoreChangedAttributes = ['updated_at'];
 
+    protected $casts = [
+        'gambar' => 'array',
+    ];
+
 
     public function getActivitylogAttributes(): array
     {
