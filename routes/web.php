@@ -73,8 +73,12 @@ Route::middleware('auth')->group(function () {
 
 
     Route::group(['middleware' => 'checkRole:superadmin,admin gudang,kepala gudang'], function () {
+        Route::get('/barang/cetak-pdf/{id}', [BarangController::class, 'cetakPdf'])
+            ->name('barang.cetak.pdf');
+
         Route::get('/barang/get-data', [BarangController::class, 'getDataBarang']);
         Route::resource('/barang', BarangController::class);
+
 
         Route::get('/jenis-barang/get-data', [JenisController::class, 'getDataJenisBarang']);
         Route::resource('/jenis-barang', JenisController::class);
@@ -99,5 +103,7 @@ Route::middleware('auth')->group(function () {
         Route::resource('/barang-keluar', BarangKeluarController::class);
     });
 });
+
+
 
 require __DIR__ . '/auth.php';

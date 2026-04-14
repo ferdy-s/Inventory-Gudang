@@ -63,10 +63,13 @@
                 <input type="number" id="edit_stok_minimum" name="stok_minimum" class="form-control">
               </div>
 
-              <div class="mb-2">
-                <label>Deskripsi</label>
-                <textarea id="edit_deskripsi" name="deskripsi" class="form-control"></textarea>
-              </div>
+              <div class="mb-3">
+  <label>Deskripsi</label>
+  <textarea id="edit_deskripsi"
+            name="deskripsi"
+            class="form-control textarea-besar auto-resize"
+            rows="4"></textarea>
+</div>
 
             </div>
 
@@ -86,132 +89,38 @@
 
 <style>
 #edit_gambar_preview img {
-    width: 100px;
-    height: 80px;
+    width: 120px;
+    height: 120px;
     object-fit: cover;
     border-radius: 8px;
     margin: 5px;
     border: 1px solid #ddd;
 }
-</style>
+/* MODAL LEBAR CUSTOM */
+#modal_edit_barang .modal-dialog {
+    max-width: 90%;   /* bisa kamu ubah: 85%, 90%, 95% */
+    margin: 1.75rem auto;
+}
 
-<script>
-
-// ================= PREVIEW MULTI IMAGE =================
-function previewImageEdit() {
-    const files = $('#edit_gambar')[0].files;
-    const container = $('#edit_gambar_preview');
-
-    container.html('');
-
-    for (let i = 0; i < files.length; i++) {
-        container.append(`<img src="${URL.createObjectURL(files[i])}">`);
+/* OPTIONAL: lebih lebar lagi di layar besar */
+@media (min-width: 1400px) {
+    #modal_edit_barang .modal-dialog {
+        max-width: 80%;
     }
 }
-
-
-// ================= LOAD DATA =================
-$('body').on('click', '#button_edit_barang', function () {
-
-    let id = $(this).data('id');
-
-    $.get(`/barang/${id}/edit`, function (res) {
-
-        let data = res.data;
-
-        $('#barang_id').val(data.id);
-        $('#edit_nama_barang').val(data.nama_barang);
-        $('#edit_stok_minimum').val(data.stok_minimum);
-        $('#edit_jenis_id').val(data.jenis_id);
-        $('#edit_satuan_id').val(data.satuan_id);
-        $('#edit_deskripsi').val(data.deskripsi);
-
-        // 🔥 HANDLE MULTI IMAGE
-        let images = [];
-
-        try {
-            images = typeof data.gambar === 'string'
-                ? JSON.parse(data.gambar)
-                : data.gambar;
-        } catch {
-            images = [];
-        }
-
-        let html = images.length
-            ? images.map(img => `<img src="/storage/${img}">`).join('')
-            : `<span class="text-muted">No Image</span>`;
-
-        $('#edit_gambar_preview').html(html);
-
-        $('#modal_edit_barang').modal('show');
-    });
-
-});
-
-
-// ================= UPDATE =================
-$(document).on('click', '#update', function (e) {
-
-    e.preventDefault();
-
-    let id = $('#barang_id').val();
-    let formData = new FormData();
-
-let files = $('#edit_gambar')[0].files;
-for (let i = 0; i < files.length; i++) {
-    formData.append('gambar[]', files[i]);
+/* TEXTAREA BESAR */
+.textarea-besar {
+    min-height: 290px;   /* tinggi awal */
+    font-size: 14px;
+    line-height: 1.6;
+    padding: 1px;
+    border-radius: 1px;
 }
 
-formData.append('nama_barang', $('#edit_nama_barang').val());
-formData.append('stok_minimum', $('#edit_stok_minimum').val());
-formData.append('deskripsi', $('#edit_deskripsi').val());
-formData.append('jenis_id', $('#edit_jenis_id').val());
-formData.append('satuan_id', $('#edit_satuan_id').val());
-
-    formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
-    formData.append('_method', 'PUT');
-
-    $.ajax({
-        url: `/barang/${id}`,
-        type: 'POST',
-        data: formData,
-        processData: false,
-        contentType: false,
-
-        beforeSend: function () {
-            $('#update').prop('disabled', true).text('Menyimpan...');
-        },
-
-        success: function (res) {
-
-            Swal.fire({
-                icon: 'success',
-                title: 'Berhasil',
-                text: res.message,
-                timer: 1500,
-                showConfirmButton: false
-            });
-
-            $('#modal_edit_barang').modal('hide');
-
-            $('#update').prop('disabled', false).text('Update');
-
-           if (typeof loadData === 'function') {
-    loadData();
+/* AUTO RESIZE SUPPORT */
+.auto-resize {
+    resize: auto;  /* pengguna bisa resize manual */
+    overflow: scroll;
 }
-        },
+</style>
 
-        error: function () {
-
-            $('#update').prop('disabled', false).text('Update');
-
-            Swal.fire({
-                icon: 'error',
-                title: 'Gagal',
-                text: 'Terjadi kesalahan server'
-            });
-        }
-    });
-
-});
-</script>

@@ -99,13 +99,13 @@
                         let customer = getCustomerName(response.customer, value.customer_id);
                         let barangKeluar = `
                 <tr class="barang-row" id="index_${value.id}">
-                    <td>${counter++}</td>   
+                    <td>${counter++}</td>
                     <td>${value.kode_transaksi}</td>
                     <td>${value.tanggal_keluar}</td>
-                    <td>${value.nama_barang}</td>
+                   <td>${value.barang?.nama_barang ?? '-'}</td>
                     <td>${value.jumlah_keluar}</td>
                     <td>${customer}</td>
-                    <td>       
+                    <td>
                         <a href="javascript:void(0)" id="button_hapus_barangKeluar" data-id="${value.id}" class="btn btn-icon btn-danger btn-lg mb-2"><i class="fas fa-trash"></i> </a>
                     </td>
                 </tr>
@@ -140,144 +140,147 @@
 
     <!-- Show Modal Tambah Jenis Barang -->
     <script>
-        $('body').on('click', '#button_tambah_barangKeluar', function() {
-            $('#modal_tambah_barangKeluar').modal('show');
-            $('#kode_transaksi').val(generateKodeTransaksi());
-        });
-
-        $('#store').click(function(e) {
-            e.preventDefault();
-
-            let kode_transaksi = $('#kode_transaksi').val();
-            let tanggal_keluar = $('#tanggal_keluar').val();
-            let nama_barang = $('#nama_barang').val();
-            let jumlah_keluar = $('#jumlah_keluar').val();
-            let customer_id = $('#customer_id').val();
-            let token = $("meta[name='csrf-token']").attr("content");
-
-            let formData = new FormData();
-            formData.append('kode_transaksi', kode_transaksi);
-            formData.append('tanggal_keluar', tanggal_keluar);
-            formData.append('nama_barang', nama_barang);
-            formData.append('jumlah_keluar', jumlah_keluar);
-            formData.append('customer_id', customer_id);
-            formData.append('_token', token);
-
-            $.ajax({
-                url: '/barang-keluar',
-                type: "POST",
-                cache: false,
-                data: formData,
-                contentType: false,
-                processData: false,
-
-                success: function(response) {
-
-                    Swal.fire({
-                        type: 'success',
-                        icon: 'success',
-                        title: `${response.message}`,
-                        showConfirmButton: true,
-                        timer: 3000
-                    });
-
-                    $.ajax({
-                        url: '/barang-keluar/get-data',
-                        type: "GET",
-                        cache: false,
-                        success: function(response) {
-                            $('#table-barangs').html('');
-
-                            let counter = 1;
-                            $('#table_id').DataTable().clear();
-                            $.each(response.data, function(key, value) {
-                                let customer = getCustomerName(response.customer,
-                                    value.customer_id);
-                                let barangKeluar = `
-                                <tr class="barang-row" id="index_${value.id}">
-                                    <td>${counter++}</td>   
-                                    <td>${value.kode_transaksi}</td>
-                                    <td>${value.tanggal_keluar}</td>
-                                    <td>${value.nama_barang}</td>
-                                    <td>${value.jumlah_keluar}</td>
-                                    <td>${customer}</td>
-                                    <td>
-                                        <a href="javascript:void(0)" id="button_hapus_barangKeluar" data-id="${value.id}" class="btn btn-icon btn-danger btn-lg mb-2"><i class="fas fa-trash"></i> </a>
-                                    </td>
-                                </tr>
-                             `;
-                                $('#table_id').DataTable().row.add($(barangKeluar))
-                                    .draw(false);
-                            });
-
-                            $('#kode_transaksi').val('');
-                            $('#nama_barang').val('');
-                            $('#jumlah_keluar').val('');
-                            $('#stok').val('');
-
-                            $('#modal_tambah_barangKeluar').modal('hide');
-
-                            let table = $('#table_id').DataTable();
-                            table.draw(); // memperbarui Datatables
-
-                            function getCustomerName(customers, customerId) {
-                                let customer = customers.find(s => s.id === customerId);
-                                return customer ? customer.customer : '';
-                            }
-                        },
-
-                        error: function() {
-                            //
-                        }
-
-                    })
-                },
-
-                error: function(error) {
-                    // Menyembunyikan semua alert error
-                    $('#modal_tambah_barangKeluar').on('hidden.bs.modal', function() {
-                        // Mengatur ulang tampilan alert error
-                        $('.alert').removeClass('d-block').addClass('d-none');
-                    });
+        // ================= SHOW MODAL =================
+$(document).on('click', '#button_tambah_barangKeluar', function () {
+    $('#modal_tambah_barangKeluar').modal('show');
+    $('#kode_transaksi').val(generateKodeTransaksi());
+});
 
 
-                    if (error.responseJSON && error.responseJSON.kode_transaksi && error.responseJSON
-                        .kode_transaksi[0]) {
-                        $('#alert-kode_transaksi').removeClass('d-none').addClass('d-block');
-                        $('#alert-kode_transaksi').html(error.responseJSON.kode_transaksi[0]);
-                    }
+// ================= STORE DATA =================
+$(document).off('click', '#store_barangKeluar').on('click', '#store_barangKeluar', function (e) {
 
-                    if (error.responseJSON && error.responseJSON.tanggal_keluar && error.responseJSON
-                        .tanggal_keluar[0]) {
-                        $('#alert-tanggal_keluar').removeClass('d-none').addClass('d-block');
-                        $('#alert-tanggal_keluar').html(error.responseJSON.tanggal_keluar[0]);
-                    }
+    e.preventDefault();
 
-                    if (error.responseJSON && error.responseJSON.nama_barang && error.responseJSON
-                        .nama_barang[0]) {
-                        $('#alert-nama_barang').removeClass('d-none').addClass('d-block');
-                        $('#alert-nama_barang').html(error.responseJSON.nama_barang[0]);
-                    }
+    let formData = new FormData();
 
-                    if (error.responseJSON && error.responseJSON.jumlah_keluar && error.responseJSON
-                        .jumlah_keluar[0]) {
-                        $('#alert-jumlah_keluar').removeClass('d-none').addClass('d-block');
-                        $('#alert-jumlah_keluar').html(error.responseJSON.jumlah_keluar[0]);
-                    }
+    formData.append('kode_transaksi', $('#kode_transaksi').val());
+    formData.append('tanggal_keluar', $('#tanggal_keluar').val());
+    formData.append('nama_barang', $('#nama_barang').val());
+    formData.append('jumlah_keluar', $('#jumlah_keluar').val());
+    formData.append('customer_id', $('#customer_id').val());
+    formData.append('_token', $('meta[name="csrf-token"]').attr("content"));
 
-                    if (error.responseJSON && error.responseJSON.customer_id && error.responseJSON
-                        .customer_id[0]) {
-                        $('#alert-customer_id').removeClass('d-none').addClass('d-block');
-                        $('#alert-customer_id').html(error.responseJSON.customer_id[0]);
-                    }
+    $.ajax({
+        url: '/barang-keluar',
+        type: "POST",
+        data: formData,
+        processData: false,
+        contentType: false,
 
-                    // Menampilkan kembali modal tambah jika terjadi error
-                    $('#modal_tambah_barangKeluar').modal('show');
+        beforeSend: function () {
+            $('#store_barangKeluar')
+                .prop('disabled', true)
+                .text('Menyimpan...');
+            $('.alert').addClass('d-none');
+        },
 
-                }
+        success: function (response) {
+
+            console.log("SUCCESS:", response);
+
+            Swal.fire({
+                icon: 'success',
+                title: response.message
+            });
+
+            $('#modal_tambah_barangKeluar').modal('hide');
+
+            $('#store_barangKeluar')
+                .prop('disabled', false)
+                .text('Tambah');
+
+            // reset form
+            $('#kode_transaksi').val('');
+            $('#nama_barang').val('');
+            $('#jumlah_keluar').val('');
+            $('#stok').val('');
+
+            // 🔥 reload data clean
+            loadBarangKeluar();
+
+        },
+
+        error: function (xhr) {
+
+            console.log("ERROR:", xhr.responseText);
+
+            $('#store_barangKeluar')
+                .prop('disabled', false)
+                .text('Tambah');
+
+            if (xhr.status === 422) {
+
+                let errors = xhr.responseJSON;
+
+                if (errors.tanggal_keluar)
+                    $('#alert-tanggal_keluar').removeClass('d-none').text(errors.tanggal_keluar[0]);
+
+                if (errors.nama_barang)
+                    $('#alert-nama_barang').removeClass('d-none').text(errors.nama_barang[0]);
+
+                if (errors.jumlah_keluar)
+                    $('#alert-jumlah_keluar').removeClass('d-none').text(errors.jumlah_keluar[0]);
+
+                if (errors.customer_id)
+                    $('#alert-customer_id').removeClass('d-none').text(errors.customer_id[0]);
+
+            } else {
+
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Server Error',
+                    text: xhr.responseText.substring(0, 200)
+                });
+
+            }
+        }
+    });
+
+});
+
+
+// ================= LOAD DATA =================
+function loadBarangKeluar() {
+
+    let table = $('#table_id').DataTable();
+    table.clear();
+
+    $.ajax({
+        url: "/barang-keluar/get-data",
+        type: "GET",
+
+        success: function (response) {
+
+            let counter = 1;
+
+            $.each(response.data, function (key, value) {
+
+                let customer = response.customer.find(s => s.id === value.customer_id);
+
+                let row = `
+                    <tr id="index_${value.id}">
+                        <td>${counter++}</td>
+                        <td>${value.kode_transaksi}</td>
+                        <td>${value.tanggal_keluar}</td>
+                        <td>${value.barang?.nama_barang ?? '-'}</td>
+                        <td>${value.jumlah_keluar}</td>
+                        <td>${customer ? customer.customer : ''}</td>
+                        <td>
+                            <button class="btn btn-danger btn-sm" id="button_hapus_barangKeluar" data-id="${value.id}">
+                                Hapus
+                            </button>
+                        </td>
+                    </tr>
+                `;
+
+                table.row.add($(row)).draw(false);
 
             });
-        });
+
+        }
+    });
+}
     </script>
 
 
@@ -326,13 +329,13 @@
                                             .customer_id);
                                         let barangKeluar = `
                                         <tr class="barang-row" id="index_${value.id}">
-                                            <td>${counter++}</td>   
+                                            <td>${counter++}</td>
                                             <td>${value.kode_transaksi}</td>
                                             <td>${value.tanggal_keluar}</td>
-                                            <td>${value.nama_barang}</td>
+                                            <td>${value.barang?.nama_barang ?? '-'}</td>
                                             <td>${value.jumlah_keluar}</td>
                                             <td>${customer}</td>
-                                            <td>       
+                                            <td>
                                                 <a href="javascript:void(0)" id="button_hapus_barangKeluar" data-id="${value.id}" class="btn btn-icon btn-danger btn-lg mb-2"><i class="fas fa-trash"></i> </a>
                                             </td>
                                         </tr>

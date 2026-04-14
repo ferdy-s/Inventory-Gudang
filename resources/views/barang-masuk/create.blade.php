@@ -34,12 +34,14 @@
               <div class="col-md-6">
                 <div class="form-group">
                   <label>Pilih Barang</label>
-                    <select class="js-example-basic-single" name="nama_barang" id="nama_barang" style="width: 100%">
-                      <option selected>Pilih Barang</option>
-                      @foreach ($barangs as $barang)
-                        <option value="{{ $barang->nama_barang }}">{{ $barang->nama_barang }}</option>
-                      @endforeach
-                    </select>
+                    <select class="form-control" name="barang_id" id="barang_id">
+    <option value="">Pilih Barang</option>
+    @foreach ($barangs as $barang)
+        <option value="{{ $barang->id }}">
+            {{ $barang->nama_barang }}
+        </option>
+    @endforeach
+</select>
                     <div class="alert alert-danger mt-2 d-none" role="alert" id="alert-nama_barang"></div>
                 </div>
 
@@ -58,22 +60,32 @@
                 </div>
 
                 <div class="form-group">
-                  <label>Jumlah Masuk</label>
-                  <div class="input-group">
-                    <input type="number" class="form-control" name="jumlah_masuk" id="jumlah_masuk" min="0" style="width: 75%;">
-                    <div class="input-group-append" style="width: 25%;">
-                      <input type="text" class="form-control" name="satuan" id="satuan_id" disabled>
-                    </div>
-                    <div class="alert alert-danger mt-2 d-none" role="alert" id="alert-jumlah_masuk"></div>
-                  </div>
-                </div>
+  <label>Jumlah Masuk</label>
+  <div class="input-group">
+
+    <input type="number"
+           class="form-control"
+           name="jumlah_masuk"
+           id="jumlah_masuk"
+           min="0">
+
+    <div class="input-group-append">
+      <span class="input-group-text bg-light" id="satuan_text">
+        -
+      </span>
+    </div>
+
+  </div>
+
+  <div class="alert alert-danger mt-2 d-none" id="alert-jumlah_masuk"></div>
+</div>
 
               </div>
             </div>
           </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-dismiss="modal">Keluar</button>
-          <button type="button" class="btn btn-primary" id="store_jenis_barang">Tambah</button>
+          <button type="button" class="btn btn-primary" id="store_barangMasuk">Tambah</button>
         </div>
         </form>
       </div>
@@ -82,6 +94,34 @@
 </div>
 
 
+<script>
+    $('#barang_id').on('change', function () {
 
+    let barang_id = $(this).val();
+
+    if (!barang_id) {
+        $('#stok').val('');
+        $('#satuan_id').val('');
+        return;
+    }
+
+    $.ajax({
+        url: "/barang-masuk/get-barang-detail",
+        type: "GET",
+        data: {
+            barang_id: barang_id
+        },
+        success: function (response) {
+
+            // 🔥 isi stok
+            $('#stok').val(response.stok);
+
+            // 🔥 isi satuan
+            $('#satuan_id').val(response.satuan);
+        }
+    });
+
+});
+</script>
 
 

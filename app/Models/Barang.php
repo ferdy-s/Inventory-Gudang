@@ -55,4 +55,12 @@ class Barang extends Model
     {
         return $this->belongsTo(Satuan::class, 'satuan_id');
     }
+    protected $attributes = [
+        'stok' => 0
+    ];
+
+    public function supplier()
+    {
+        return $this->belongsTo(Supplier::class, 'supplier_id');
+    }
 }

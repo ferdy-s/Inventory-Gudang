@@ -28,7 +28,7 @@ class BarangKeluarController extends Controller
     {
         return response()->json([
             'success'   => true,
-            'data'      => BarangKeluar::all(),
+            'data' => BarangKeluar::with(['barang', 'customer'])->get(),
             'customer'  => Customer::all()
         ]);
     }
@@ -50,53 +50,54 @@ class BarangKeluarController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'tanggal_keluar'     => 'required',
-            'nama_barang'        => 'required',
-            'customer_id'        => 'required',
-            'jumlah_keluar'      => [
-                'required',
-                function ($attribute, $value, $fail) use ($request) {
-                    $nama_barang = $request->nama_barang;
-                    $barang = Barang::where('nama_barang', $nama_barang)->first();
-        
-                    if ($value > $barang->stok) {
-                        $fail("Stok Tidak Cukup !");
-                    }
-                },
-            ],
-        ],[
-            'tanggal_keluar.required'    => 'Pilih Barang Terlebih Dahulu !',
-            'nama_barang.required'       => 'Form Nama Barang Wajib Di Isi !',
-            'jumlah_keluar.required'     => 'Form Jumlah Stok Masuk Wajib Di Isi !',
-            'customer_id.required'       => 'Pilih Customer !'
+            'tanggal_keluar' => 'required',
+            'nama_barang'    => 'required',
+            'customer_id'    => 'required',
+            'jumlah_keluar'  => 'required|numeric|min:1',
+        ], [
+            'tanggal_keluar.required' => 'Tanggal wajib diisi!',
+            'nama_barang.required'    => 'Nama barang wajib diisi!',
+            'jumlah_keluar.required'  => 'Jumlah wajib diisi!',
+            'customer_id.required'    => 'Pilih customer!'
         ]);
 
-        if($validator->fails()) {
+        if ($validator->fails()) {
             return response()->json($validator->errors(), 422);
         }
 
+        // 🔥 ambil barang sekali saja
+        $barang = Barang::where('nama_barang', $request->nama_barang)->first();
 
-        $barangKeluar = BarangKeluar::create([
-            'tanggal_keluar'    => $request->tanggal_keluar,
-            'nama_barang'       => $request->nama_barang,
-            'jumlah_keluar'     => $request->jumlah_keluar,
-            'customer_id'       => $request->customer_id,
-            'kode_transaksi'    => $request->kode_transaksi,
-            'user_id'           => auth()->user()->id
-        ]); 
-
-        if ($barangKeluar) {
-            $barang = Barang::where('nama_barang', $request->nama_barang)->first();
-            if ($barang) {
-                $barang->stok -= $request->jumlah_keluar;
-                $barang->save();
-            }
+        if (!$barang) {
+            return response()->json(['message' => 'Barang tidak ditemukan'], 422);
         }
 
+        // 🔥 VALIDASI STOK
+        if ($request->jumlah_keluar > $barang->stok) {
+            return response()->json([
+                'message' => 'Stok tidak cukup!'
+            ], 422);
+        }
+
+        // 🔥 SIMPAN DATA
+        $barangKeluar = BarangKeluar::create([
+            'tanggal_keluar' => $request->tanggal_keluar,
+            'barang_id'      => $barang->id,
+            'jumlah_keluar'  => $request->jumlah_keluar,
+            'customer_id'    => $request->customer_id,
+            'kode_transaksi' => $request->kode_transaksi,
+            'user_id'        => auth()->id()
+        ]);
+
+        // 🔥 UPDATE STOK (AMAN)
+        $barang->stok -= $request->jumlah_keluar;
+        $barang->stok = max(0, $barang->stok); // 🔥 anti minus
+        $barang->save();
+
         return response()->json([
-            'success'   => true,
-            'message'   => 'Data Berhasil Disimpan !',
-            'data'      => $barangKeluar
+            'success' => true,
+            'message' => 'Data Berhasil Disimpan!',
+            'data'    => $barangKeluar
         ]);
     }
 
@@ -134,11 +135,18 @@ class BarangKeluarController extends Controller
     public function destroy(BarangKeluar $barangKeluar)
     {
         $jumlahKeluar = $barangKeluar->jumlah_keluar;
+
+        // 🔥 ambil barang dari RELASI (bukan nama_barang)
+        $barang = Barang::find($barangKeluar->barang_id);
+
         $barangKeluar->delete();
 
-        $barang = Barang::where('nama_barang', $barangKeluar->nama_barang)->first();
-        if($barang){
+        if ($barang) {
             $barang->stok += $jumlahKeluar;
+
+            // 🔥 safety (tidak perlu minus check karena tambah)
+            $barang->stok = max(0, $barang->stok);
+
             $barang->save();
         }
 
@@ -155,7 +163,7 @@ class BarangKeluarController extends Controller
     {
         $barang = Barang::where('nama_barang', $request->nama_barang)->first();
 
-        if($barang){
+        if ($barang) {
             return response()->json([
                 'nama_barang'   => $barang->nama_barang,
                 'stok'          => $barang->stok,
@@ -184,7 +192,7 @@ class BarangKeluarController extends Controller
     public function getSatuan()
     {
         $satuans = Satuan::all();
-        
+
         return response()->json($satuans);
     }
 
@@ -197,7 +205,4 @@ class BarangKeluarController extends Controller
 
         return response()->json([]);
     }
-
-
-
 }

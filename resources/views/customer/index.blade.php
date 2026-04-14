@@ -36,278 +36,191 @@
         </div>
     </div>
     <!-- Datatables Jquery -->
-    <script>
-        $(document).ready(function() {
-            $('#table_id').DataTable({
-                paging: true
-            });
-            $.ajax({
-                url: "/customer/get-data",
-                type: "GET",
-                dataType: 'JSON',
-                success: function(response) {
-                    let counter = 1;
-                    $('#table_id').DataTable().clear();
-                    $.each(response.data, function(key, value) {
-                        let customer = `
-                <tr class="barang-row" id="index_${value.id}">
-                    <td>${counter++}</td>
-                    <td>${value.customer}</td>
-                    <td>${value.alamat}</td>
-                    <td>${value.deskripsi ?? '-'}</td>
-                    <td>
-                        <a href="javascript:void(0)" id="button_edit_customer" data-id="${value.id}" class="btn btn-icon btn-warning btn-lg mb-2"><i class="far fa-edit"></i> </a>
-                        <a href="javascript:void(0)" id="button_hapus_customer" data-id="${value.id}" class="btn btn-icon btn-danger btn-lg mb-2"><i class="fas fa-trash"></i> </a>
-                    </td>
-                </tr>
-            `;
-                        $('#table_id').DataTable().row.add($(customer)).draw(false);
-                    });
-                }
-            });
+   <script>
+$(document).ready(function() {
+
+    let table = $('#table_id').DataTable({
+        paging: true
+    });
+
+    function loadData() {
+        $.ajax({
+            url: "/customer/get-data",
+            type: "GET",
+            dataType: 'JSON',
+            success: function(response) {
+
+                table.clear().draw();
+
+                let counter = 1;
+                $.each(response.data, function(key, value) {
+
+                    let row = `
+                    <tr id="index_${value.id}">
+                        <td>${counter++}</td>
+                        <td>${value.customer}</td>
+                        <td>${value.alamat}</td>
+                        <td>${value.deskripsi ?? '-'}</td>
+                        <td>
+                            <a href="javascript:void(0)" data-id="${value.id}" class="btn btn-warning btn-sm button_edit_customer">Edit</a>
+                            <a href="javascript:void(0)" data-id="${value.id}" class="btn btn-danger btn-sm button_hapus_customer">Hapus</a>
+                        </td>
+                    </tr>
+                    `;
+
+                    table.row.add($(row)).draw(false);
+                });
+            }
         });
-    </script>
+    }
 
-    <!-- Show Modal Tambah Jenis Barang -->
-    <script>
-        $('body').on('click', '#button_tambah_customer', function() {
-            $('#modal_tambah_customer').modal('show');
-        });
+    // load awal
+    loadData();
 
-      $('body').on('click', '#store_customer', function(e) {
-            e.preventDefault();
+    // ================= MODAL TAMBAH =================
+// ================= MODAL TAMBAH =================
+$('body').on('click', '#button_tambah_customer', function() {
+    $('#modal_tambah_customer').modal('show');
+});
+    // ================= STORE =================
+// ================= STORE =================
+$('body').on('click', '#store_customer', function(e) {
 
-            let customer = $('#customer').val();
-            let alamat = $('#alamat').val();
-            let token = $("meta[name='csrf-token']").attr("content");
+    e.preventDefault();
 
-            let formData = new FormData();
-            formData.append('customer', customer);
-            formData.append('alamat', alamat);
-            formData.append('deskripsi', $('#deskripsi').val());
-            formData.append('_token', token);
+    $.ajax({
+        url: '/customer',
+        type: 'POST',
+        data: {
+            customer: $('#customer').val(),
+            alamat: $('#alamat').val(),
+            deskripsi: $('#deskripsi').val(),
+            _token: $('meta[name="csrf-token"]').attr('content')
+        },
 
-            $.ajax({
-                url: '/customer',
-                type: "POST",
-                cache: false,
-                data: formData,
-                contentType: false,
-                processData: false,
-
-                success: function(response) {
-                    Swal.fire({
-                        type: 'success',
-                        icon: 'success',
-                        title: `${response.message}`,
-                        showConfirmButton: true,
-                        timer: 3000
-                    });
-
-                    $.ajax({
-                        url: '/customer/get-data',
-                        type: "GET",
-                        cache: false,
-                        success: function(response) {
-                            $('#table-barangs').html('');
-
-                            let counter = 1;
-                            $('#table_id').DataTable().clear();
-                            $.each(response.data, function(key, value) {
-                                let customer = `
-                                <tr class="barang-row" id="index_${value.id}">
-                                    <td>${counter++}</td>
-                                    <td>${value.customer}</td>
-                                    <td>${value.alamat}</td>
-                                    <td>${value.deskripsi ?? '-'}</td>
-                                    <td>
-                                        <a href="javascript:void(0)" id="button_edit_customer" data-id="${value.id}" class="btn btn-icon btn-warning btn-lg mb-2"><i class="far fa-edit"></i> </a>
-                                        <a href="javascript:void(0)" id="button_hapus_customer" data-id="${value.id}" class="btn btn-icon btn-danger btn-lg mb-2"><i class="fas fa-trash"></i> </a>
-                                    </td>
-                                </tr>
-                             `;
-                                $('#table_id').DataTable().row.add($(customer))
-                                    .draw(false);
-                            });
-
-                            $('#customer').val('');
-                            $('#alamat').val('');
-                            $('#modal_tambah_customer').modal('hide');
-
-                            let table = $('#table_id').DataTable();
-                            table.draw(); // memperbarui Datatables
-                        },
-                        error: function(error) {
-                            console.log(error);
-                        }
-                    })
-                },
-
-                error: function(error) {
-                    if (error.responseJSON && error.responseJSON.customer && error.responseJSON
-                        .customer[0]) {
-                        $('#alert-customer').removeClass('d-none');
-                        $('#alert-customer').addClass('d-block');
-
-                        $('#alert-customer').html(error.responseJSON.customer[0]);
-                    }
-
-                    if (error.responseJSON && error.responseJSON.alamat && error.responseJSON.alamat[
-                        0]) {
-                        $('#alert-alamat').removeClass('d-none');
-                        $('#alert-alamat').addClass('d-block');
-
-                        $('#alert-alamat').html(error.responseJSON.alamat[0]);
-                    }
-                }
-            });
-        });
-    </script>
-
-    <!-- Edit Data Jenis Barang -->
-    <script>
-        //Show modal edit
-        $('body').on('click', '#button_edit_customer', function() {
-            let customer_id = $(this).data('id');
-
-            $.ajax({
-                url: `/customer/${customer_id}/edit`,
-                type: "GET",
-                cache: false,
-                success: function(response) {
-                    $('#customer_id').val(response.data.id);
-                    $('#edit_customer').val(response.data.customer);
-                    $('#edit_alamat').val(response.data.alamat);
-
-                    $('#modal_edit_customer').modal('show');
-                }
-            });
-        });
-
-        // Proses Update Data
-     $('body').on('click', '#update', function(e) {
-            e.preventDefault();
-
-            let customer_id = $('#customer_id').val();
-            let customer = $('#edit_customer').val();
-            let alamat = $('#edit_alamat').val();
-            let token = $("meta[name='csrf-token']").attr('content');
-
-            let formData = new FormData();
-            formData.append('customer', customer);
-            formData.append('alamat', alamat);
-            formData.append('deskripsi', $('#edit_deskripsi').val());
-            formData.append('_token', token);
-            formData.append('_method', 'PUT');
-
-            $.ajax({
-                url: `/customer/${customer_id}`,
-                type: "POST",
-                cache: false,
-                data: formData,
-                contentType: false,
-                processData: false,
-
-                success: function(response) {
-                    Swal.fire({
-                        type: 'success',
-                        icon: 'success',
-                        title: `${response.message}`,
-                        showConfirmButton: true,
-                        timer: 3000
-                    });
-
-                    let row = $(`#index_${response.data.id}`);
-                    let rowData = row.find('td');
-                    rowData.eq(1).text(response.data.customer);
-                    rowData.eq(2).text(response.data.alamat);
-                    rowData.eq(3).text(response.data.deskripsi ?? '-');
-
-                    $('#modal_edit_customer').modal('hide');
-                },
-
-                error: function(error) {
-                    if (error.responseJSON && error.responseJSON.customer && error.responseJSON
-                        .customer[0]) {
-                        $('#alert-customer').removeClass('d-none');
-                        $('#alert-customer').addClass('d-block');
-
-                        $('#alert-customer').html(error.responseJSON.customer[0]);
-                    }
-
-                    if (error.responseJSON && error.responseJSON.alamat && error.responseJSON.alamat[
-                        0]) {
-                        $('#alert-alamat').removeClass('d-none');
-                        $('#alert-alamat').addClass('d-block');
-
-                        $('#alert-alamat').html(error.responseJSON.alamat[0]);
-                    }
-                }
-            });
-        });
-    </script>
-
-    <!-- Hapus Data Barang -->
-    <script>
-        $('body').on('click', '#button_hapus_customer', function() {
-            let customer_id = $(this).data('id');
-            let token = $("meta[name='csrf-token']").attr("content");
+        success: function(res) {
 
             Swal.fire({
-                title: 'Apakah Kamu Yakin?',
-                text: "ingin menghapus data ini !",
-                icon: 'warning',
-                showCancelButton: true,
-                cancelButtonText: 'TIDAK',
-                confirmButtonText: 'YA, HAPUS!'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    $.ajax({
-                        url: `/customer/${customer_id}`,
-                        type: "DELETE",
-                        cache: false,
-                        data: {
-                            "_token": token
-                        },
-                        success: function(response) {
-                            Swal.fire({
-                                type: 'success',
-                                icon: 'success',
-                                title: `${response.message}`,
-                                showConfirmButton: true,
-                                timer: 3000
-                            });
-                            $(`#index_${customer_id}`).remove();
-
-                            $.ajax({
-                                url: "/customer/get-data",
-                                type: "GET",
-                                dataType: 'JSON',
-                                success: function(response) {
-                                    let counter = 1;
-                                    $('#table_id').DataTable().clear();
-                                    $.each(response.data, function(key, value) {
-                                        let customer = `
-                                        <tr class="barang-row" id="index_${value.id}">
-                                            <td>${counter++}</td>
-                                            <td>${value.customer}</td>
-                                            <td>${value.alamat}</td>
-                                            <td>${value.deskripsi ?? '-'}</td>
-                                            <td>
-                                                <a href="javascript:void(0)" id="button_edit_customer" data-id="${value.id}" class="btn btn-icon btn-warning btn-lg mb-2"><i class="far fa-edit"></i> </a>
-                                                <a href="javascript:void(0)" id="button_hapus_customer" data-id="${value.id}" class="btn btn-icon btn-danger btn-lg mb-2"><i class="fas fa-trash"></i> </a>
-                                            </td>
-                                        </tr>
-                                    `;
-                                        $('#table_id').DataTable().row.add(
-                                            $(customer)).draw(false);
-                                    });
-                                }
-                            });
-                        }
-                    })
-                }
+                icon: 'success',
+                title: res.message,
+                timer: 2000,
+                showConfirmButton: false
             });
+
+            $('#modal_tambah_customer').modal('hide');
+
+            $('#customer').val('');
+            $('#alamat').val('');
+            $('#deskripsi').val('');
+
+            $('#alert-customer').addClass('d-none');
+            $('#alert-alamat').addClass('d-none');
+
+            loadData();
+        },
+error: function(err) {
+
+    console.log(err); // 🔥 LIHAT ERROR ASLI DI CONSOLE
+
+    Swal.fire({
+        icon: 'error',
+        title: 'ERROR',
+        text: err.responseText // 🔥 tampilkan error Laravel
+    });
+
+}
+    });
+
+});
+    // ================= EDIT =================
+    $('body').on('click', '.button_edit_customer', function() {
+
+        let id = $(this).data('id');
+
+        $.get(`/customer/${id}/edit`, function(response) {
+
+            $('#customer_id').val(response.data.id);
+            $('#edit_customer').val(response.data.customer);
+            $('#edit_alamat').val(response.data.alamat);
+            $('#edit_deskripsi').val(response.data.deskripsi);
+
+            $('#modal_edit_customer').modal('show');
         });
-    </script>
+    });
+
+    // ================= UPDATE =================
+    $('body').on('click', '#update', function(e) {
+        e.preventDefault();
+
+        let id = $('#customer_id').val();
+
+        let formData = new FormData();
+        formData.append('customer', $('#edit_customer').val());
+        formData.append('alamat', $('#edit_alamat').val());
+        formData.append('deskripsi', $('#edit_deskripsi').val());
+        formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
+        formData.append('_method', 'PUT');
+
+        $.ajax({
+            url: `/customer/${id}`,
+            type: "POST",
+            data: formData,
+            contentType: false,
+            processData: false,
+
+            success: function(response) {
+
+                Swal.fire({
+                    icon: 'success',
+                    title: response.message,
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+
+                $('#modal_edit_customer').modal('hide');
+                loadData();
+            }
+        });
+    });
+
+    // ================= DELETE =================
+    $('body').on('click', '.button_hapus_customer', function() {
+
+        let id = $(this).data('id');
+
+        Swal.fire({
+            title: 'Yakin?',
+            text: "Data akan dihapus",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Ya'
+        }).then((result) => {
+
+            if (result.isConfirmed) {
+
+                $.ajax({
+                    url: `/customer/${id}`,
+                    type: "DELETE",
+                    data: {
+                        _token: $('meta[name="csrf-token"]').attr('content')
+                    },
+
+                    success: function(response) {
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: response.message,
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+
+                        loadData();
+                    }
+                });
+            }
+        });
+    });
+
+});
+</script>
 @endsection

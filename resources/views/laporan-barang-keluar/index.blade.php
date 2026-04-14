@@ -110,24 +110,32 @@ $(document).ready(function () {
                 customer_id: $('#customer_id').val()
             },
             success: function (response) {
+
                 table.clear();
 
-                if (response.length === 0) {
+                if (!response || response.length === 0) {
                     table.row.add([
-                        '', 'Tidak ada data', '', '', '', ''
+                        '',
+                        'Tidak ada data',
+                        '',
+                        '',
+                        '',
+                        ''
                     ]).draw();
                     return;
                 }
 
                 $.each(response, function (index, item) {
+
                     table.row.add([
                         index + 1,
-                        item.kode_transaksi,
-                        item.tanggal_keluar,
-                        item.nama_barang,
-                        item.jumlah_keluar,
+                        item.kode_transaksi ?? '-',
+                        item.tanggal_keluar ?? '-',
+                        item.barang ? item.barang.nama_barang : '-', // ✅ FIX
+                        item.jumlah_keluar ?? 0,
                         item.customer ? item.customer.customer : '-'
                     ]);
+
                 });
 
                 table.draw();

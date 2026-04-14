@@ -9,29 +9,40 @@ use Spatie\Activitylog\LogOptions;
 
 class BarangKeluar extends Model
 {
-    use HasFactory;
-    use LogsActivity;
+    use HasFactory, LogsActivity;
 
-    protected $fillable = ['kode_transaksi', 'tanggal_keluar', 'nama_barang', 'jumlah_keluar', 'customer_id', 'user_id'];
-    protected $guarded = [''];
-    protected $ignoreChangedAttributes = ['updated_at'];
+    protected $fillable = [
+        'kode_transaksi',
+        'tanggal_keluar',
+        'barang_id',
+        'jumlah_keluar',
+        'customer_id',
+        'user_id'
+    ];
 
-    public function getActivitylogAttributes(): array
+    // ================= RELASI =================
+    public function barang()
     {
-        return array_diff($this->fillable, $this->ignoreChangedAttributes);
-    }    
-
-    // Activity Log
-    public function getActivitylogOptions(): LogOptions
-    {
-        return LogOptions::defaults()
-            ->logUnguarded()
-            ->logOnlyDirty();
+        return $this->belongsTo(Barang::class, 'barang_id');
     }
 
-    // 1 barang keluar hanya memiliki satu customer
     public function customer()
     {
         return $this->belongsTo(Customer::class, 'customer_id');
+    }
+
+    // ================= ACCESSOR =================
+    public function getNamaBarangAttribute()
+    {
+        return $this->barang ? $this->barang->nama_barang : '-';
+    }
+
+    // ================= ACTIVITY LOG =================
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly($this->fillable)
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
     }
 }

@@ -28,7 +28,7 @@
         </div>
         <div class="modal-footer bg-whitesmoke br">
           <button type="button" class="btn btn-secondary" data-dismiss="modal">Keluar</button>
-          <button type="button" class="btn btn-primary" id="update">Tambah</button>
+          <button type="button" class="btn btn-primary" id="update_supplier">Update</button>
         </div>
         </form>
       </div>

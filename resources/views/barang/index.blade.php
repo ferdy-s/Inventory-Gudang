@@ -125,98 +125,41 @@ if (images.length > 0) {
 </script>
    <!-- Show Modal Tambah barang -->
 <script>
-$(document).ready(function () {
+    $(document).ready(function () {
 
     // ================= MODAL TAMBAH =================
     $('body').on('click', '#button_tambah_barang', function () {
         $('#modal_tambah_barang').modal('show');
     });
 
-    // ================= FUNCTION LOAD DATA =================
-    function loadData() {
-
-        let table = $('#table_id').DataTable();
-        table.clear();
-
-        $.ajax({
-            url: '/barang/get-data',
-            type: "GET",
-            cache: false,
-            success: function (response) {
-
-                let counter = 1;
-
-                $.each(response.data, function (key, value) {
-
-                    let stok = value.stok ?? "Stok Kosong";
-
-                    // 🔥 MULTI IMAGE HANDLE
-                    let images = [];
-                    try {
-                        images = JSON.parse(value.gambar);
-                    } catch (e) {
-                        images = [];
-                    }
-
-                  let imageHtml = `<span class="text-muted">No Image</span>`;
-
-if (images.length > 0) {
-    imageHtml = `
-        <div style="position:relative; display:inline-block;">
-            <img src="/storage/${images[0]}" width="80" style="border-radius:6px;">
-            ${images.length > 1 ? `<span style="
-                position:absolute;
-                bottom:0;
-                right:0;
-                background:black;
-                color:white;
-                font-size:10px;
-                padding:2px 5px;
-                border-radius:5px;">
-                +${images.length - 1}
-            </span>` : ''}
-        </div>
-    `;
-}
-
-                    let barang = `
-                        <tr class="barang-row" id="index_${value.id}">
-                            <td>${counter++}</td>
-                            <td>${imageHtml}</td>
-                            <td>${value.kode_barang}</td>
-                            <td>${value.nama_barang}</td>
-                            <td>${stok}</td>
-                            <td>
-                                <a href="javascript:void(0)" id="button_detail_barang" data-id="${value.id}" class="btn btn-success btn-sm">Detail</a>
-                                <a href="javascript:void(0)" id="button_edit_barang" data-id="${value.id}" class="btn btn-warning btn-sm">Edit</a>
-                                <a href="javascript:void(0)" id="button_hapus_barang" data-id="${value.id}" class="btn btn-danger btn-sm">Hapus</a>
-                            </td>
-                        </tr>
-                    `;
-
-                    table.row.add($(barang)).draw(false);
-                });
-
-            }
-        });
-    }
-
-    // ================= STORE =================
-    $('#store').click(function (e) {
+    // ================= STORE (FINAL FIX) =================
+    $(document).off('click', '#store').on('click', '#store', function (e) {
         e.preventDefault();
 
         let files = $('#gambar')[0].files;
 
+        // ================= VALIDASI =================
+        if (files.length === 0) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Gambar wajib diisi'
+            });
+            return;
+        }
+
         if (files.length > 20) {
-            alert("Maksimal 20 gambar!");
+            Swal.fire({
+                icon: 'warning',
+                title: 'Maksimal 20 gambar'
+            });
             return;
         }
 
         let formData = new FormData();
 
-        // 🔥 FIX MULTI IMAGE
+        // ================= FIX ARRAY IMAGE =================
         for (let i = 0; i < files.length; i++) {
-            formData.append('gambar[]', files[i]);
+            formData.append('gambar[' + i + ']', files[i]);
         }
 
         formData.append('nama_barang', $('#nama_barang').val());
@@ -224,70 +167,85 @@ if (images.length > 0) {
         formData.append('jenis_id', $('#jenis_id').val());
         formData.append('satuan_id', $('#satuan_id').val());
         formData.append('deskripsi', $('#deskripsi').val());
-        formData.append('_token', $("meta[name='csrf-token']").attr("content"));
+        formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
 
         $.ajax({
             url: '/barang',
-            type: "POST",
-            cache: false,
+            type: 'POST',
             data: formData,
-            contentType: false,
             processData: false,
+            contentType: false,
 
-            success: function (response) {
+            beforeSend: function () {
+                $('.alert').addClass('d-none');
+
+                $('#store')
+                    .prop('disabled', true)
+                    .html('<i class="fas fa-spinner fa-spin"></i> Menyimpan...');
+            },
+
+            success: function (res) {
+                console.log("SUCCESS:", res);
 
                 Swal.fire({
                     icon: 'success',
-                    title: response.message,
-                    timer: 2000
+                    title: res.message
                 });
 
-                // reset form
-                $('#gambar').val('');
-                $('#preview').attr('src', '');
-                $('#nama_barang').val('');
-                $('#stok_minimum').val('');
-                $('#deskripsi').val('');
-
+                // ================= RESET =================
+                $('#form_tambah_barang')[0].reset();
                 $('#modal_tambah_barang').modal('hide');
 
-                // reload table
-                loadData();
+                $('#store')
+                    .prop('disabled', false)
+                    .text('Tambah');
+
+                // ================= RELOAD DATA =================
+                if ($.fn.DataTable.isDataTable('#table_id')) {
+                    $('#table_id').DataTable().ajax.reload(null, false);
+                } else {
+                    location.reload();
+                }
             },
 
-            error: function (error) {
+            error: function (xhr) {
+                console.log("ERROR FULL:", xhr.responseText);
 
-                if (error.responseJSON) {
+                $('#store')
+                    .prop('disabled', false)
+                    .text('Tambah');
 
-                    if (error.responseJSON.gambar) {
-                        $('#alert-gambar').removeClass('d-none').addClass('d-block')
-                            .html(error.responseJSON.gambar[0]);
-                    }
+                // ================= VALIDATION ERROR =================
+                if (xhr.status === 422) {
 
-                    if (error.responseJSON.nama_barang) {
-                        $('#alert-nama_barang').removeClass('d-none').addClass('d-block')
-                            .html(error.responseJSON.nama_barang[0]);
-                    }
+                    let errors = xhr.responseJSON;
 
-                    if (error.responseJSON.stok_minimum) {
-                        $('#alert-stok_minimum').removeClass('d-none').addClass('d-block')
-                            .html(error.responseJSON.stok_minimum[0]);
-                    }
+                    if (errors.nama_barang)
+                        $('#alert-nama_barang').removeClass('d-none').text(errors.nama_barang[0]);
 
-                    if (error.responseJSON.jenis_id) {
-                        $('#alert-jenis_id').removeClass('d-none').addClass('d-block')
-                            .html(error.responseJSON.jenis_id[0]);
-                    }
+                    if (errors.stok_minimum)
+                        $('#alert-stok_minimum').removeClass('d-none').text(errors.stok_minimum[0]);
 
-                    if (error.responseJSON.satuan_id) {
-                        $('#alert-satuan_id').removeClass('d-none').addClass('d-block')
-                            .html(error.responseJSON.satuan_id[0]);
-                    }
+                    if (errors.deskripsi)
+                        $('#alert-deskripsi').removeClass('d-none').text(errors.deskripsi[0]);
 
-                    if (error.responseJSON.deskripsi) {
-                        $('#alert-deskripsi').removeClass('d-none').addClass('d-block')
-                            .html(error.responseJSON.deskripsi[0]);
-                    }
+                    if (errors.gambar)
+                        $('#alert-gambar').removeClass('d-none').text(errors.gambar[0]);
+
+                    if (errors.jenis_id)
+                        $('#alert-jenis_id').removeClass('d-none').text(errors.jenis_id[0]);
+
+                    if (errors.satuan_id)
+                        $('#alert-satuan_id').removeClass('d-none').text(errors.satuan_id[0]);
+
+                } else {
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Server Error',
+                        text: xhr.responseText.substring(0, 200)
+                    });
+
                 }
             }
         });
@@ -317,13 +275,16 @@ $(document).on('click', '#button_detail_barang', function () {
 
             console.log("DETAIL DATA:", data);
 
+             setCetakPdf(data.id);
+
             // ================= TEXT =================
             $('#detail_nama_barang').text(data.nama_barang || '-');
             $('#detail_stok').text(data.stok ?? 0);
             $('#detail_stok_minimum').text(data.stok_minimum ?? 0);
 
             let desc = data.deskripsi || '-';
-            $('#detail_deskripsi').html(desc.replace(/,/g, '<br>'));
+            $('#detail_deskripsi').text(desc.replace(/,/g, '<br>'));
+                setupReadMore();
 
             // ================= RELASI =================
             $('#detail_jenis').text(data.jenis?.jenis_barang ?? '-');
@@ -349,8 +310,15 @@ $(document).on('click', '#button_detail_barang', function () {
         },
 
         error: function (xhr) {
-            console.error(xhr.responseText);
-        }
+
+    console.log("ERROR:", xhr.responseText);
+
+    Swal.fire({
+        icon: 'error',
+        title: 'ERROR',
+        text: xhr.responseText.substring(0, 200)
+    });
+}
     });
 });
 
@@ -437,6 +405,41 @@ $('#modal_detail_barang').on('hidden.bs.modal', function () {
     currentSlide = 0;
     $('#slider_images').css('transform', 'translateX(0)');
 });
+
+function setupReadMore() {
+    const desc = document.getElementById("detail_deskripsi");
+    const btn = document.getElementById("btn_readmore");
+
+    // reset
+    desc.classList.remove("expanded");
+    desc.classList.add("collapsed");
+    btn.innerText = "Read More";
+
+    setTimeout(() => {
+        if (desc.scrollHeight > desc.clientHeight) {
+            btn.style.display = "inline-block";
+        } else {
+            btn.style.display = "none";
+        }
+    }, 50);
+
+    btn.onclick = function () {
+
+        if (desc.classList.contains("collapsed")) {
+            desc.classList.remove("collapsed");
+            desc.classList.add("expanded");
+            btn.innerText = "Read Less";
+        } else {
+            desc.classList.remove("expanded");
+            desc.classList.add("collapsed");
+            btn.innerText = "Read More";
+
+            // optional: scroll balik ke atas
+            desc.scrollTop = 0;
+        }
+    };
+
+}
 </script>
 
  <!-- Show Edit Data Barang -->
@@ -518,7 +521,7 @@ $(document).on('click', '#update', function(e) {
 
     if (files.length > 0) {
         for (let i = 0; i < files.length; i++) {
-            formData.append('gambar[]', files[i]);
+            formData.append('gambar['+i+']', files[i]);
         }
     }
 
@@ -642,13 +645,22 @@ $('body').on('click', '#button_hapus_barang', function () {
     <!-- Preview Image -->
     <script>
         function previewImage() {
-            preview.src = URL.createObjectURL(event.target.files[0]);
-        }
+    let preview = document.getElementById('preview');
+    preview.src = URL.createObjectURL(event.target.files[0]);
+}
     </script>
 
     <script>
-        function previewImageEdit() {x
-            edit_gambar_preview.src = URL.createObjectURL(event.target.files[0]);
-        }
+        function previewImageEdit() {
+    let preview = document.getElementById('edit_gambar_preview');
+    preview.src = URL.createObjectURL(event.target.files[0]);
+}
     </script>
+
+    <script>
+function setCetakPdf(id) {
+    const btn = document.getElementById('btnCetakPdf');
+    btn.href = `/barang/cetak-pdf/${id}`;
+}
+</script>
 @endsection

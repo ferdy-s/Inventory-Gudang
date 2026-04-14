@@ -43,11 +43,21 @@ class SupplierController extends Controller
             return response()->json($validator->errors(), 422);
         }
 
+        // 🔥 FIX UTAMA: gunakan user login
+        $userId = auth()->id();
+
+        // fallback kalau tidak login (biar tidak error)
+        if (!$userId) {
+            return response()->json([
+                'message' => 'User tidak login'
+            ], 401);
+        }
+
         $supplier = Supplier::create([
             'supplier'  => $request->supplier,
             'alamat'    => $request->alamat,
             'deskripsi' => $request->deskripsi,
-            'user_id' => 1
+            'user_id'   => $userId
         ]);
 
         return response()->json([
@@ -92,8 +102,7 @@ class SupplierController extends Controller
         $supplier->update([
             'supplier'  => $request->supplier,
             'alamat'    => $request->alamat,
-            'deskripsi' => $request->deskripsi, // ✅ FIX
-            'user_id' => 1
+            'deskripsi' => $request->deskripsi,
         ]);
 
         return response()->json([

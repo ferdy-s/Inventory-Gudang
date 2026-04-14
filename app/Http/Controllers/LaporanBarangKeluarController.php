@@ -17,10 +17,9 @@ class LaporanBarangKeluarController extends Controller
         ]);
     }
 
-
     public function getData(Request $request)
     {
-        $query = BarangKeluar::with('customer');
+        $query = BarangKeluar::with(['barang', 'customer']); // ✅ FIX
 
         if ($request->filled('tanggal_mulai') && $request->filled('tanggal_selesai')) {
             $query->whereBetween('tanggal_keluar', [
@@ -29,8 +28,11 @@ class LaporanBarangKeluarController extends Controller
             ]);
         }
 
+        // ⚠️ kalau kamu masih pakai nama_barang di DB
         if ($request->filled('nama_barang')) {
-            $query->where('nama_barang', 'LIKE', '%' . $request->nama_barang . '%');
+            $query->whereHas('barang', function ($q) use ($request) {
+                $q->where('nama_barang', 'LIKE', '%' . $request->nama_barang . '%');
+            });
         }
 
         if ($request->filled('customer_id')) {
@@ -40,11 +42,9 @@ class LaporanBarangKeluarController extends Controller
         return response()->json($query->get());
     }
 
-
-
     public function printBarangKeluar(Request $request)
     {
-        $query = BarangKeluar::with('customer');
+        $query = BarangKeluar::with(['barang', 'customer']); // ✅ FIX
 
         if ($request->filled('tanggal_mulai') && $request->filled('tanggal_selesai')) {
             $query->whereBetween('tanggal_keluar', [
@@ -54,7 +54,9 @@ class LaporanBarangKeluarController extends Controller
         }
 
         if ($request->filled('nama_barang')) {
-            $query->where('nama_barang', 'LIKE', '%' . $request->nama_barang . '%');
+            $query->whereHas('barang', function ($q) use ($request) {
+                $q->where('nama_barang', 'LIKE', '%' . $request->nama_barang . '%');
+            });
         }
 
         if ($request->filled('customer_id')) {
@@ -63,13 +65,10 @@ class LaporanBarangKeluarController extends Controller
 
         $data = $query->get();
 
-        return view(
-            'laporan-barang-keluar.print-barang-keluar',
-            [
-                'data' => $data,
-                'tanggalMulai' => $request->tanggal_mulai,
-                'tanggalSelesai' => $request->tanggal_selesai
-            ]
-        );
+        return view('laporan-barang-keluar.print-barang-keluar', [
+            'data' => $data,
+            'tanggalMulai' => $request->tanggal_mulai,
+            'tanggalSelesai' => $request->tanggal_selesai
+        ]);
     }
 }

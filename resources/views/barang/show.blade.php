@@ -33,33 +33,70 @@
           </div>
 
           <!-- RIGHT -->
-          <div class="right-panel">
+        <div class="right-panel">
 
-            <h2 id="detail_nama_barang" class="title-main">-</h2>
+            <h3 id="detail_nama_barang" class="title-main">-</h3>
 
             <div class="info-list">
-              <div><span>Jenis</span><span id="detail_jenis"></span></div>
-              <div><span>Satuan</span><span id="detail_satuan"></span></div>
-              <div><span>Stok</span><span id="detail_stok"></span></div>
-              <div><span>Min Stok</span><span id="detail_stok_minimum"></span></div>
-            </div>
+         <a href="#" id="btnCetakPdf" class="btn btn-danger">
+  <i class="fas fa-file-pdf"></i> Cetak PDF
+</a>
 
-            <div class="desc-section">
-              <div class="label">Deskripsi</div>
-              <div id="detail_deskripsi" class="desc-text"></div>
-            </div>
+  <div>
+
+    <span>
+      <i class="fas fa-tags icon-info"></i>
+      Jenis :
+    </span>
+    <span id="detail_jenis"></span>
+  </div>
+
+  <div>
+    <span>
+      <i class="fas fa-balance-scale icon-info"></i>
+      Satuan :
+    </span>
+    <span id="detail_satuan"></span>
+  </div>
+
+  <div>
+    <span>
+      <i class="fas fa-boxes icon-info"></i>
+      Stok :
+    </span>
+    <span id="detail_stok"></span>
+  </div>
+
+  <div>
+    <span>
+      <i class="fas fa-exclamation-triangle icon-info"></i>
+      Min Stok :
+    </span>
+    <span id="detail_stok_minimum"></span>
+  </div>
+
+</div>
+<br>
+           <div class="desc-section">
+
+  <div class="label" style="font-size: 17px">
+    <i class="fas fa-align-left icon-label"></i>
+    Deskripsi :
+  </div>
+
+  <div id="detail_deskripsi" class="desc-text collapsed" style="margin-top: 10px"></div>
+
+  <button id="btn_readmore" class="btn-readmore" style="display:none;">
+    Read More
+  </button>
+
+</div>
 
           </div>
 
         </div>
 
       </div>
-
-      <!-- FOOTER -->
-      <div class="modal-footer clean-footer">
-        <button class="btn btn-primary" data-dismiss="modal">Tutup</button>
-      </div>
-
     </div>
   </div>
 </div>
@@ -181,22 +218,70 @@
   justify-content: space-between;
   padding: 10px 0;
   border-bottom: 1px solid #eee;
-  font-size: 14px;
+  font-size: 17px;
 }
 
 /* DESC */
-.desc-section {
-  margin-top: 20px;
-}
-
-.desc-section .label {
-  margin-bottom: 8px;
-  font-size: 14px;
-}
-
 .desc-text {
   line-height: 1.7;
   color: #444;
+  margin-bottom: 8px;
+
+  white-space: pre-line; /* 🔥 KUNCI UTAMA */
+}
+
+/* MODE COLLAPSED */
+.desc-text.collapsed {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* MODE EXPANDED (🔥 kunci utama) */
+.desc-text.expanded {
+  max-height: 255px; /* batas tinggi setelah expand */
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+/* OPTIONAL: scrollbar lebih halus */
+.desc-text.expanded::-webkit-scrollbar {
+  width: 6px;
+}
+.desc-text.expanded::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 10px;
+}
+
+.btn-readmore {
+  margin-top: 12px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #4f46e5;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* hover */
+.btn-readmore:hover {
+  background: #4f46e5;
+  color:  #111827;
+  border-color: #4f46e5;
+}
+
+/* active click */
+.btn-readmore:active {
+  transform: scale(0.97);
+}
+
+/* optional: full width */
+.btn-readmore.full {
+  width: 100%;
 }
 
 /* 🔥 THUMBNAIL */

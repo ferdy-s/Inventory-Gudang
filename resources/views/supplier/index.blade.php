@@ -77,180 +77,223 @@
             $('#modal_tambah_supplier').modal('show');
         });
 
-        $('body').on('click', '#store', function(e) {
-            e.preventDefault();
+        $(document).off('click', '#store_supplier').on('click', '#store_supplier', function(e) {
+    e.preventDefault();
 
-            let supplier = $('#supplier').val();
-            let alamat = $('#alamat').val();
-            let deskripsi = $('#deskripsi').val();
-            let token = $("meta[name='csrf-token']").attr("content");
+    let formData = new FormData();
+    formData.append('supplier', $('#supplier').val());
+    formData.append('alamat', $('#alamat').val());
+    formData.append('deskripsi', $('#deskripsi').val());
+    formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
 
-            let formData = new FormData();
-            formData.append('supplier', supplier);
-            formData.append('alamat', alamat);
-            formData.append('deskripsi', deskripsi);
-            formData.append('_token', token);
+    $.ajax({
+        url: '/supplier',
+        type: "POST",
+        data: formData,
+        processData: false,
+        contentType: false,
 
-            $.ajax({
-                url: '/supplier',
-                type: "POST",
-                cache: false,
-                data: formData,
-                contentType: false,
-                processData: false,
+        beforeSend: function () {
+            $('.alert').addClass('d-none');
+            $('#store_supplier').prop('disabled', true).text('Menyimpan...');
+        },
 
-                success: function(response) {
-                    Swal.fire({
-                        type: 'success',
-                        icon: 'success',
-                        title: `${response.message}`,
-                        showConfirmButton: true,
-                        timer: 3000
-                    });
+        success: function (res) {
 
-                    $.ajax({
-                        url: '/supplier/get-data',
-                        type: "GET",
-                        cache: false,
-                        success: function(response) {
-                            $('#table-barangs').html('');
-
-                            let counter = 1;
-                            $('#table_id').DataTable().clear();
-                            $.each(response.data, function(key, value) {
-                                let supplier = `
-                                <tr class="barang-row" id="index_${value.id}">
-                                    <td>${counter++}</td>
-                                    <td>${value.supplier}</td>
-                                    <td>${value.alamat}</td>
-                                    <td>${value.deskripsi ?? '-'}</td>
-                                    <td>
-                                        <a href="javascript:void(0)" id="button_edit_supplier" data-id="${value.id}" class="btn btn-icon btn-warning btn-lg mb-2"><i class="far fa-edit"></i> </a>
-                                        <a href="javascript:void(0)" id="button_hapus_supplier" data-id="${value.id}" class="btn btn-icon btn-danger btn-lg mb-2"><i class="fas fa-trash"></i> </a>
-                                    </td>
-                                </tr>
-                             `;
-                                $('#table_id').DataTable().row.add($(supplier))
-                                    .draw(false);
-                            });
-
-                            $('#supplier').val('');
-                            $('#alamat').val('');
-                            $('#modal_tambah_supplier').modal('hide');
-
-                            let table = $('#table_id').DataTable();
-                            table.draw(); // memperbarui Datatables
-                        },
-                        error: function(error) {
-                            console.log(error);
-                        }
-                    })
-                },
-
-                error: function(error) {
-                    if (error.responseJSON && error.responseJSON.supplier && error.responseJSON
-                        .supplier[0]) {
-                        $('#alert-supplier').removeClass('d-none');
-                        $('#alert-supplier').addClass('d-block');
-
-                        $('#alert-supplier').html(error.responseJSON.supplier[0]);
-                    }
-
-                    if (error.responseJSON && error.responseJSON.alamat && error.responseJSON.alamat[
-                        0]) {
-                        $('#alert-alamat').removeClass('d-none');
-                        $('#alert-alamat').addClass('d-block');
-
-                        $('#alert-alamat').html(error.responseJSON.alamat[0]);
-                    }
-                }
+            Swal.fire({
+                icon: 'success',
+                title: res.message
             });
-        });
+
+            $('#modal_tambah_supplier').modal('hide');
+            $('#store_supplier').prop('disabled', false).text('Tambah');
+
+            // reset form
+            $('#supplier').val('');
+            $('#alamat').val('');
+            $('#deskripsi').val('');
+
+            loadSupplier();
+        },
+
+        error: function (xhr) {
+
+            $('#store_supplier').prop('disabled', false).text('Tambah');
+
+            if (xhr.status === 422) {
+
+                let errors = xhr.responseJSON;
+
+                if (errors.supplier)
+                    $('#alert-supplier').removeClass('d-none').text(errors.supplier[0]);
+
+                if (errors.alamat)
+                    $('#alert-alamat').removeClass('d-none').text(errors.alamat[0]);
+
+            } else {
+
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Server Error',
+                    text: xhr.responseText.substring(0, 200)
+                });
+
+            }
+        }
+    });
+});
+function loadSupplier() {
+
+    let table = $('#table_id').DataTable();
+    table.clear();
+
+    $.ajax({
+        url: "/supplier/get-data",
+        type: "GET",
+        success: function(response) {
+
+            let counter = 1;
+
+            $.each(response.data, function(key, value) {
+
+                let row = `
+                    <tr id="index_${value.id}">
+                        <td>${counter++}</td>
+                        <td>${value.supplier}</td>
+                        <td>${value.alamat}</td>
+                        <td>${value.deskripsi ?? '-'}</td>
+                        <td>
+                            <a href="javascript:void(0)" data-id="${value.id}" class="btn btn-warning btn-sm" id="button_edit_supplier">Edit</a>
+                            <a href="javascript:void(0)" data-id="${value.id}" class="btn btn-danger btn-sm" id="button_hapus_supplier">Hapus</a>
+                        </td>
+                    </tr>
+                `;
+
+                table.row.add($(row)).draw(false);
+
+            });
+
+        }
+    });
+}
     </script>
 
     <!-- Edit Data Jenis Barang -->
-    <script>
-        //Show modal edit
-        $('body').on('click', '#button_edit_supplier', function() {
-            let supplier_id = $(this).data('id');
+ <script>
+    // ================= SHOW MODAL EDIT =================
+$(document).on('click', '#button_edit_supplier', function () {
 
-            $.ajax({
-                url: `/supplier/${supplier_id}/edit`,
-                type: "GET",
-                cache: false,
-                success: function(response) {
-                    $('#supplier_id').val(response.data.id);
-                    $('#edit_supplier').val(response.data.supplier);
-                    $('#edit_alamat').val(response.data.alamat);
-                    $('#edit_deskripsi').val(response.data.deskripsi);
-                    $('#modal_edit_supplier').modal('show');
-                }
+    let supplier_id = $(this).data('id');
+
+    $.ajax({
+        url: `/supplier/${supplier_id}/edit`,
+        type: "GET",
+
+        success: function (response) {
+
+            let data = response.data;
+
+            $('#supplier_id').val(data.id);
+            $('#edit_supplier').val(data.supplier);
+            $('#edit_alamat').val(data.alamat);
+            $('#edit_deskripsi').val(data.deskripsi);
+
+            $('#modal_edit_supplier').modal('show');
+        },
+
+        error: function (xhr) {
+            console.log("ERROR EDIT:", xhr.responseText);
+        }
+    });
+
+});
+
+
+// ================= UPDATE DATA =================
+$(document).off('click', '#update_supplier').on('click', '#update_supplier', function (e) {
+
+    e.preventDefault();
+
+    let supplier_id = $('#supplier_id').val();
+
+    if (!supplier_id) {
+        alert('ID tidak ditemukan');
+        return;
+    }
+
+    let formData = new FormData();
+
+    formData.append('supplier', $('#edit_supplier').val());
+    formData.append('alamat', $('#edit_alamat').val());
+    formData.append('deskripsi', $('#edit_deskripsi').val());
+    formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
+    formData.append('_method', 'PUT');
+
+    $.ajax({
+        url: `/supplier/${supplier_id}`,
+        type: "POST",
+        data: formData,
+        processData: false,
+        contentType: false,
+
+        beforeSend: function () {
+            $('#update_supplier')
+                .prop('disabled', true)
+                .text('Menyimpan...');
+        },
+
+        success: function (res) {
+
+            console.log("UPDATE SUCCESS:", res);
+
+            Swal.fire({
+                icon: 'success',
+                title: res.message
             });
-        });
 
-        // Proses Update Data
-        $('#update').click(function(e) {
-            e.preventDefault();
+            $('#modal_edit_supplier').modal('hide');
 
-            let supplier_id = $('#supplier_id').val();
-            let supplier = $('#edit_supplier').val();
-            let alamat = $('#edit_alamat').val();
-            let deskripsi = $('#edit_deskripsi').val();
-            let token = $("meta[name='csrf-token']").attr('content');
+            $('#update_supplier')
+                .prop('disabled', false)
+                .text('Update');
 
-            let formData = new FormData();
-            formData.append('supplier', supplier);
-            formData.append('alamat', alamat);
-            formData.append('deskripsi', deskripsi);
-            formData.append('_token', token);
-            formData.append('_method', 'PUT');
+            // 🔥 reload data biar konsisten
+            loadSupplier();
 
-            $.ajax({
-                url: `/supplier/${supplier_id}`,
-                type: "POST",
-                cache: false,
-                data: formData,
-                contentType: false,
-                processData: false,
+        },
 
-                success: function(response) {
-                    Swal.fire({
-                        type: 'success',
-                        icon: 'success',
-                        title: `${response.message}`,
-                        showConfirmButton: true,
-                        timer: 3000
-                    });
+        error: function (xhr) {
 
-                    let row = $(`#index_${response.data.id}`);
-                    let rowData = row.find('td');
-                    rowData.eq(1).text(response.data.supplier);
-                    rowData.eq(2).text(response.data.alamat);
-                    rowData.eq(3).text(response.data.deskripsi ?? '-');
+            console.log("UPDATE ERROR:", xhr.responseText);
 
-                    $('#modal_edit_supplier').modal('hide');
-                },
+            $('#update_supplier')
+                .prop('disabled', false)
+                .text('Update');
 
-                error: function(error) {
-                    if (error.responseJSON && error.responseJSON.supplier && error.responseJSON
-                        .supplier[0]) {
-                        $('#alert-supplier').removeClass('d-none');
-                        $('#alert-supplier').addClass('d-block');
+            if (xhr.status === 422) {
 
-                        $('#alert-supplier').html(error.responseJSON.supplier[0]);
-                    }
+                let errors = xhr.responseJSON;
 
-                    if (error.responseJSON && error.responseJSON.alamat && error.responseJSON.alamat[
-                        0]) {
-                        $('#alert-alamat').removeClass('d-none');
-                        $('#alert-alamat').addClass('d-block');
+                if (errors.supplier)
+                    $('#alert-edit-supplier').removeClass('d-none').text(errors.supplier[0]);
 
-                        $('#alert-alamat').html(error.responseJSON.alamat[0]);
-                    }
-                }
-            });
-        });
-    </script>
+                if (errors.alamat)
+                    $('#alert-edit-alamat').removeClass('d-none').text(errors.alamat[0]);
+
+            } else {
+
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Server Error',
+                    text: xhr.responseText.substring(0, 200)
+                });
+
+            }
+        }
+    });
+
+});
+ </script>
 
     <!-- Hapus Data Barang -->
     <script>

@@ -9,29 +9,56 @@ use Spatie\Activitylog\LogOptions;
 
 class BarangMasuk extends Model
 {
-    use HasFactory;
-    use LogsActivity;
+    use HasFactory, LogsActivity;
 
-    protected $fillable = ['kode_transaksi', 'tanggal_masuk', 'nama_barang', 'jumlah_masuk', 'supplier_id', 'user_id'];
-    protected $guarded = [''];
+    protected $fillable = [
+        'kode_transaksi',
+        'tanggal_masuk',
+        'barang_id',
+        'jumlah_masuk',
+        'supplier_id',
+        'user_id'
+    ];
+
     protected $ignoreChangedAttributes = ['updated_at'];
 
-    public function getActivitylogAttributes(): array
+    // ================= RELASI =================
+    public function barang()
     {
-        return array_diff($this->fillable, $this->ignoreChangedAttributes);
+        return $this->belongsTo(Barang::class, 'barang_id');
     }
-
-    // Activity Log
-    public function getActivitylogOptions(): LogOptions
-    {
-        return LogOptions::defaults()
-            ->logUnguarded()
-            ->logOnlyDirty();
-    }
-
 
     public function supplier()
     {
         return $this->belongsTo(Supplier::class, 'supplier_id');
+    }
+
+    // ================= ACCESSOR =================
+    public function getNamaBarangAttribute()
+    {
+        return $this->barang ? $this->barang->nama_barang : '-';
+    }
+
+    // ================= LOG =================
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly($this->fillable)
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
+
+    public function getSatuanAttribute()
+    {
+        return $this->barang && $this->barang->satuan
+            ? $this->barang->satuan->satuan
+            : '-';
+    }
+
+    public function getStokAttribute()
+    {
+        return $this->barang
+            ? $this->barang->stok
+            : 0;
     }
 }

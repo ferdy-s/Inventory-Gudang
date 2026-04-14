@@ -39,7 +39,9 @@ class LaporanBarangMasukController extends Controller
         }
 
         if ($request->filled('nama_barang')) {
-            $query->where('nama_barang', 'like', '%' . $request->nama_barang . '%');
+            $query->whereHas('barang', function ($q) use ($request) {
+                $q->where('nama_barang', 'LIKE', '%' . $request->nama_barang . '%');
+            });
         }
 
         if ($request->filled('kode_transaksi')) {
@@ -79,7 +81,9 @@ class LaporanBarangMasukController extends Controller
 
         // FILTER NAMA BARANG
         if ($request->filled('nama_barang')) {
-            $query->where('nama_barang', 'LIKE', '%' . $request->nama_barang . '%');
+            $query->whereHas('barang', function ($q) use ($request) {
+                $q->where('nama_barang', 'LIKE', '%' . $request->nama_barang . '%');
+            });
         }
 
         // FILTER SUPPLIER

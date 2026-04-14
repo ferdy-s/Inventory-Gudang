@@ -41,86 +41,128 @@
 
     <!-- Select2 Autocomplete -->
     <script>
-        $(document).ready(function() {
-            setTimeout(function() {
-                $('.js-example-basic-single').select2();
+       $(document).ready(function() {
 
-                $('#nama_barang').on('change', function() {
-                    var selectedOption = $(this).find('option:selected');
-                    var nama_barang = selectedOption.text();
+    $('.js-example-basic-single').select2();
 
-                    $.ajax({
-                        url: '/api/barang-masuk',
-                        type: 'GET',
-                        data: {
-                            nama_barang: nama_barang,
-                        },
-                        success: function(response) {
-                            if (response && (response.stok || response.stok === 0) &&
-                                response.satuan_id) {
-                                $('#stok').val(response.stok);
-                                getSatuanName(response.satuan_id, function(satuan) {
-                                    $('#satuan_id').val(satuan);
-                                });
-                            } else if (response && response.stok === 0) {
-                                $('#stok').val(0);
-                                $('#satuan_id').val('');
-                            }
-                        },
-                    });
+    $('#barang_id').on('change', function () {
 
-                    function getSatuanName(satuanId, callback) {
-                        $.getJSON('{{ url('api/satuan') }}', function(satuans) {
-                            var satuan = satuans.find(function(s) {
-                                return s.id === satuanId;
-                            });
-                            callback(satuan ? satuan.satuan : '');
-                        });
-                    }
-                });
-            }, 500);
+        let barang_id = $(this).val();
+
+        if (!barang_id) return;
+
+        $.ajax({
+            url: '/api/barang-detail', // ✅ endpoint baru
+            type: 'GET',
+            data: { barang_id: barang_id },
+
+            success: function (response) {
+
+                $('#stok').val(response.stok ?? 0);
+                $('#satuan_id').val(response.satuan ?? '');
+
+            }
         });
+
+    });
+
+});
     </script>
 
     <!-- Datatable -->
     <script>
-        $(document).ready(function() {
-            $('#table_id').DataTable({
-                paging: true
-            });
+       $(document).ready(function () {
 
-            $.ajax({
-                url: "/barang-masuk/get-data",
-                type: "GET",
-                dataType: 'JSON',
-                success: function(response) {
-                    let counter = 1;
-                    $('#table_id').DataTable().clear();
-                    $.each(response.data, function(key, value) {
-                        let supplier = getSupplierName(response.supplier, value.supplier_id);
-                        let barangMasuk = `
-                <tr class="barang-row" id="index_${value.id}">
-                    <td>${counter++}</td>
-                    <td>${value.kode_transaksi}</td>
-                    <td>${value.tanggal_masuk}</td>
-                    <td>${value.nama_barang}</td>
-                    <td>${value.jumlah_masuk}</td>
-                    <td>${supplier}</td>
-                    <td>
-                        <a href="javascript:void(0)" id="button_hapus_barangMasuk" data-id="${value.id}" class="btn btn-icon btn-danger btn-lg mb-2"><i class="fas fa-trash"></i> </a>
-                    </td>
-                </tr>
-            `;
-                        $('#table_id').DataTable().row.add($(barangMasuk)).draw(false);
-                    });
+    let table = $('#table_id').DataTable();
 
-                    function getSupplierName(suppliers, supplierId) {
-                        let supplier = suppliers.find(s => s.id === supplierId);
-                        return supplier ? supplier.supplier : '';
-                    }
-                }
-            });
+    function loadData() {
+        $.ajax({
+            url: "/barang-masuk/get-data",
+            type: "GET",
+            dataType: "JSON",
+            success: function (response) {
+
+                table.clear();
+
+                let no = 1;
+
+                $.each(response.data, function (i, item) {
+
+                    let row = `
+                        <tr>
+                            <td>${no++}</td>
+                            <td>${item.kode_transaksi}</td>
+                            <td>${item.tanggal_masuk}</td>
+                            <td>${item.nama_barang}</td>
+                            <td>${item.jumlah_masuk}</td>
+                            <td>${item.supplier?.supplier ?? '-'}</td>
+                            <td>
+                                <button data-id="${item.id}"
+                                        class="btn btn-danger btn-sm delete-btn">
+                                    Hapus
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+
+                    table.row.add($(row));
+                });
+
+                table.draw();
+            }
         });
+    }
+
+   reloadTable();
+
+});
+function reloadTable() {
+    let table = $('#table_id').DataTable();
+
+    $.ajax({
+        url: "/barang-masuk/get-data",
+        type: "GET",
+        success: function (response) {
+
+            table.clear();
+
+            let no = 1;
+
+            $.each(response.data, function (i, item) {
+
+                let row = `
+                    <tr>
+                        <td>${no++}</td>
+                        <td>${item.kode_transaksi}</td>
+                        <td>${item.tanggal_masuk}</td>
+                        <td>${item.nama_barang}</td>
+                        <td>${item.jumlah_masuk}</td>
+                        <td>${item.supplier?.supplier ?? '-'}</td>
+                        <td>
+                            <button data-id="${item.id}"
+                                    class="btn btn-danger btn-sm delete-btn">
+                                Hapus
+                            </button>
+                        </td>
+                    </tr>
+                `;
+
+                table.row.add($(row));
+            });
+
+            table.draw();
+        }
+    });
+}
+
+$(document).ready(function () {
+
+    $('#table_id').DataTable();
+
+    // 🔥 PANGGIL DI SINI
+    reloadTable();
+
+});
     </script>
 
     <!-- Generate Kode Transaksi Otomatis -->
@@ -141,216 +183,179 @@
 
     <!-- Show Modal Tambah Jenis Barang -->
     <script>
-        $('body').on('click', '#button_tambah_barangMasuk', function() {
-            $('#modal_tambah_barangMasuk').modal('show');
-            $('#kode_transaksi').val(generateKodeTransaksi());
-        });
+        // ================= SHOW MODAL =================
+$('body').on('click', '#button_tambah_barangMasuk', function () {
+    $('#modal_tambah_barangMasuk').modal('show');
+    $('#kode_transaksi').val(generateKodeTransaksi());
+});
 
-     $('#store_jenis_barang').click(function(e) {
-            e.preventDefault();
 
-            let kode_transaksi = $('#kode_transaksi').val();
-            let tanggal_masuk = $('#tanggal_masuk').val();
-            let nama_barang = $('#nama_barang').val();
-            let jumlah_masuk = $('#jumlah_masuk').val();
-            let supplier_id = $('#supplier_id').val();
-            let token = $("meta[name='csrf-token']").attr("content");
+// ================= STORE DATA =================
+$(document).off('click', '#store_barangMasuk').on('click', '#store_barangMasuk', function (e) {
 
-            let formData = new FormData();
-            formData.append('kode_transaksi', kode_transaksi);
-            formData.append('tanggal_masuk', tanggal_masuk);
-            formData.append('nama_barang', nama_barang);
-            formData.append('jumlah_masuk', jumlah_masuk);
-            formData.append('supplier_id', supplier_id);
-            formData.append('_token', token);
-            formData.append('user_id', {{ auth()->id() }});
+    e.preventDefault();
 
-            $.ajax({
-                url: '/barang-masuk',
-                type: "POST",
-                cache: false,
-                data: formData,
-                contentType: false,
-                processData: false,
+    let formData = new FormData();
 
-                success: function(response) {
-                    Swal.fire({
-                        type: 'success',
-                        icon: 'success',
-                        title: `${response.message}`,
-                        showConfirmButton: true,
-                        timer: 3000
-                    });
+    formData.append('kode_transaksi', $('#kode_transaksi').val());
+    formData.append('tanggal_masuk', $('#tanggal_masuk').val());
+    formData.append('barang_id', $('#barang_id').val());
+    formData.append('jumlah_masuk', $('#jumlah_masuk').val());
+    formData.append('supplier_id', $('#supplier_id').val());
+    formData.append('_token', $('meta[name="csrf-token"]').attr("content"));
 
-                    $.ajax({
-                        url: '/barang-masuk/get-data',
-                        type: "GET",
-                        cache: false,
-                        success: function(response) {
-                            $('#table-barangs').html('');
+    $.ajax({
+        url: '/barang-masuk',
+        type: "POST",
+        data: formData,
+        processData: false,
+        contentType: false,
 
-                            let counter = 1;
-                            $('#table_id').DataTable().clear();
-                            $.each(response.data, function(key, value) {
-                                let supplier = getSupplierName(response.supplier,
-                                    value.supplier_id);
-                                let barangMasuk = `
-                                <tr class="barang-row" id="index_${value.id}">
-                                    <td>${counter++}</td>
-                                    <td>${value.kode_transaksi}</td>
-                                    <td>${value.tanggal_masuk}</td>
-                                    <td>${value.nama_barang}</td>
-                                    <td>${value.jumlah_masuk}</td>
-                                    <td>${supplier}</td>
-                                    <td>
-                                        <a href="javascript:void(0)" id="button_hapus_barangMasuk" data-id="${value.id}" class="btn btn-icon btn-danger btn-lg mb-2"><i class="fas fa-trash"></i> </a>
-                                    </td>
-                                </tr>
-                             `;
-                                $('#table_id').DataTable().row.add($(barangMasuk))
-                                    .draw(false);
-                            });
+        beforeSend: function () {
+            $('#store_barangMasuk').prop('disabled', true).text('Menyimpan...');
+            $('.alert').addClass('d-none');
+        },
 
-                            $('#kode_transaksi').val('');
-                            $('#nama_barang').val('');
-                            $('#jumlah_masuk').val('');
-                            $('#stok').val('');
+        success: function (res) {
 
-                            $('#modal_tambah_barangMasuk').modal('hide');
-
-                            let table = $('#table_id').DataTable();
-                            table.draw(); // memperbarui Datatables
-
-                            function getSupplierName(suppliers, supplierId) {
-                                let supplier = suppliers.find(s => s.id === supplierId);
-                                return supplier ? supplier.supplier : '';
-                            }
-                        },
-                        error: function(error) {
-                            console.log(error);
-                        }
-                    })
-                },
-
-                error: function(error) {
-                    if (error.responseJSON && error.responseJSON.kode_transaksi && error.responseJSON
-                        .kode_transaksi[0]) {
-                        $('#alert-kode_transaksi').removeClass('d-none');
-                        $('#alert-kode_transaksi').addClass('d-block');
-
-                        $('#alert-kode_transaksi').html(error.responseJSON.kode_transaksi[0]);
-                    }
-
-                    if (error.responseJSON && error.responseJSON.tanggal_masuk && error.responseJSON
-                        .tanggal_masuk[0]) {
-                        $('#alert-tanggal_masuk').removeClass('d-none');
-                        $('#alert-tanggal_masuk').addClass('d-block');
-
-                        $('#alert-tanggal_masuk').html(error.responseJSON.tanggal_masuk[0]);
-                    }
-
-                    if (error.responseJSON && error.responseJSON.nama_barang && error.responseJSON
-                        .nama_barang[0]) {
-                        $('#alert-nama_barang').removeClass('d-none');
-                        $('#alert-nama_barang').addClass('d-block');
-
-                        $('#alert-nama_barang').html(error.responseJSON.nama_barang[0]);
-                    }
-
-                    if (error.responseJSON && error.responseJSON.jumlah_masuk && error.responseJSON
-                        .jumlah_masuk[0]) {
-                        $('#alert-jumlah_masuk').removeClass('d-none');
-                        $('#alert-jumlah_masuk').addClass('d-block');
-
-                        $('#alert-jumlah_masuk').html(error.responseJSON.jumlah_masuk[0]);
-                    }
-
-                    if (error.responseJSON && error.responseJSON.supplier_id && error.responseJSON
-                        .supplier_id[0]) {
-                        $('#alert-supplier_id').removeClass('d-none');
-                        $('#alert-supplier_id').addClass('d-block');
-
-                        $('#alert-supplier_id').html(error.responseJSON.supplier_id[0]);
-                    }
-                }
+            Swal.fire({
+                icon: 'success',
+                title: res.message
             });
-        });
+
+            $('#modal_tambah_barangMasuk').modal('hide');
+
+            $('#store_barangMasuk').prop('disabled', false).text('Tambah');
+
+            // reset
+            $('#barang_id').val('').trigger('change');
+            $('#jumlah_masuk').val('');
+            $('#stok').val('');
+
+            loadBarangMasuk(); // 🔥 reload sekali saja
+        },
+
+        error: function (xhr) {
+
+            $('#store_barangMasuk').prop('disabled', false).text('Tambah');
+
+            if (xhr.status === 422) {
+
+                let errors = xhr.responseJSON;
+
+                if (errors.tanggal_masuk)
+                    $('#alert-tanggal_masuk').removeClass('d-none').text(errors.tanggal_masuk[0]);
+
+                if (errors.barang_id)
+                    $('#alert-barang_id').removeClass('d-none').text(errors.barang_id[0]);
+
+                if (errors.jumlah_masuk)
+                    $('#alert-jumlah_masuk').removeClass('d-none').text(errors.jumlah_masuk[0]);
+
+                if (errors.supplier_id)
+                    $('#alert-supplier_id').removeClass('d-none').text(errors.supplier_id[0]);
+
+            } else {
+
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Server Error',
+                    text: xhr.responseText.substring(0, 200)
+                });
+
+            }
+        }
+    });
+
+});
+
+// ================= LOAD DATA =================
+function loadBarangMasuk() {
+
+    let table = $('#table_id').DataTable();
+    table.clear();
+
+    $.ajax({
+        url: "/barang-masuk/get-data",
+        type: "GET",
+
+        success: function (response) {
+
+            let counter = 1;
+
+            $.each(response.data, function (key, value) {
+
+                let supplier = response.supplier.find(s => s.id === value.supplier_id);
+
+                let row = `
+                    <tr id="index_${value.id}">
+                        <td>${counter++}</td>
+                        <td>${value.kode_transaksi}</td>
+                        <td>${value.tanggal_masuk}</td>
+                        <td>${value.barang?.nama_barang ?? '-'}</td>
+                        <td>${value.jumlah_masuk}</td>
+                        <td>${supplier ? supplier.supplier : ''}</td>
+                        <td>
+                            <button class="btn btn-danger btn-sm" id="button_hapus_barangMasuk" data-id="${value.id}">
+                                Hapus
+                            </button>
+                        </td>
+                    </tr>
+                `;
+
+                table.row.add($(row)).draw(false);
+
+            });
+
+        }
+    });
+}
     </script>
 
 
     <!-- Hapus Data Barang -->
     <script>
-        $('body').on('click', '#button_hapus_barangMasuk', function() {
-            let barangMasuk_id = $(this).data('id');
-            let token = $("meta[name='csrf-token']").attr("content");
+        $(document).on('click', '.delete-btn', function () {
 
-            Swal.fire({
-                title: 'Apakah Kamu Yakin?',
-                text: "ingin menghapus data ini !",
-                icon: 'warning',
-                showCancelButton: true,
-                cancelButtonText: 'TIDAK',
-                confirmButtonText: 'YA, HAPUS!'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    $.ajax({
-                        url: `/barang-masuk/${barangMasuk_id}`,
-                        type: "DELETE",
-                        cache: false,
-                        data: {
-                            "_token": token
-                        },
-                        success: function(response) {
-                            Swal.fire({
-                                type: 'success',
-                                icon: 'success',
-                                title: `${response.message}`,
-                                showConfirmButton: true,
-                                timer: 3000
-                            });
-                            $(`#index_${barangMasuk_id}`).remove();
+    let id = $(this).data('id');
+    let token = $("meta[name='csrf-token']").attr("content");
 
-                            $.ajax({
-                                url: "/barang-masuk/get-data",
-                                type: "GET",
-                                dataType: 'JSON',
-                                success: function(response) {
-                                    let counter = 1;
-                                    $('#table_id').DataTable().clear();
-                                    $.each(response.data, function(key, value) {
-                                        let supplier = getSupplierName(
-                                            response.supplier, value
-                                            .supplier_id);
-                                        let barangMasuk = `
-                                        <tr class="barang-row" id="index_${value.id}">
-                                            <td>${counter++}</td>
-                                            <td>${value.kode_transaksi}</td>
-                                            <td>${value.tanggal_masuk}</td>
-                                            <td>${value.nama_barang}</td>
-                                            <td>${value.jumlah_masuk}</td>
-                                            <td>${supplier}</td>
-                                            <td>
-                                                <a href="javascript:void(0)" id="button_hapus_barangMasuk" data-id="${value.id}" class="btn btn-icon btn-danger btn-lg mb-2"><i class="fas fa-trash"></i> </a>
-                                            </td>
-                                        </tr>
-                                    `;
-                                        $('#table_id').DataTable().row.add(
-                                            $(barangMasuk)).draw(false);
-                                    });
+    Swal.fire({
+        title: 'Apakah Kamu Yakin?',
+        text: "Data akan dihapus!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'YA, HAPUS!',
+        cancelButtonText: 'BATAL'
+    }).then((result) => {
 
-                                    function getSupplierName(suppliers,
-                                    supplierId) {
-                                        let supplier = suppliers.find(s => s.id ===
-                                            supplierId);
-                                        return supplier ? supplier.supplier : '';
-                                    }
-                                }
-                            });
-                        }
+        if (result.isConfirmed) {
+
+            $.ajax({
+                url: `/barang-masuk/${id}`,
+                type: "DELETE",
+                data: {
+                    _token: token
+                },
+                success: function (response) {
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: response.message,
+                        timer: 2000,
+                        showConfirmButton: false
                     });
+
+                    // 🔥 reload table (cara bersih)
+                    reloadTable();
                 }
             });
-        });
+
+        }
+
+    });
+
+});
     </script>
 
     <script>

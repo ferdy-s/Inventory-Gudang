@@ -11,6 +11,7 @@ use App\Models\Satuan;
 use Illuminate\Contracts\Cache\Store;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 
 
@@ -234,5 +235,14 @@ class BarangController extends Controller
             'success' => true,
             'message' => 'Data Barang Berhasil Dihapus!'
         ]);
+    }
+
+    public function cetakPdf($id)
+    {
+        $item = Barang::with(['jenis', 'satuan', 'supplier'])->findOrFail($id);
+
+        $pdf = Pdf::loadView('pdf.barang', compact('item'));
+
+        return $pdf->stream('detail-barang.pdf');
     }
 }

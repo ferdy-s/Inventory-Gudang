@@ -56,7 +56,7 @@ class CustomerController extends Controller
             'customer'  => $request->customer,
             'alamat'    => $request->alamat,
             'deskripsi' => $request->deskripsi,
-            'user_id'   => auth()->user()->id
+            'user_id' => auth()->id() ?? 1
         ]);
 
         return response()->json([

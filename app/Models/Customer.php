@@ -15,9 +15,9 @@ class Customer extends Model
     protected $fillable = [
         'customer',
         'alamat',
-        'deskripsi'
+        'deskripsi',
+        'user_id'
     ];
-    protected $guarded = [''];
 
     protected $ignoreChangedAttributes = ['updated_at'];
 
