@@ -37,8 +37,7 @@
             </div>
         </div>
     </div>
-
-    <!-- Datatables Jquery -->
+<!-- Datatables Jquery -->
 <script>
 $(document).ready(function() {
 
@@ -52,6 +51,7 @@ $(document).ready(function() {
             type: "GET",
             dataType: 'JSON',
             success: function(response) {
+                
 
                 let counter = 1;
                 table.clear();
@@ -60,41 +60,55 @@ $(document).ready(function() {
 
                     let stok = value.stok != null ? value.stok : "Stok Kosong";
 
-                    // 🔥 HANDLE MULTI IMAGE
-                  let images = [];
+                    // ===== FINAL FIX RENDER GAMBAR =====
+                    function renderGambar(row) {
+                        let images = [];
 
-if (value.gambar) {
-    if (typeof value.gambar === 'string') {
-        try {
-            images = JSON.parse(value.gambar);
-        } catch {
-            images = [];
-        }
-    } else {
-        images = value.gambar; // 🔥 ini penting
-    }
-}
+                        if (row.gambar) {
+                            try {
+                                images = typeof row.gambar === 'string'
+                                    ? JSON.parse(row.gambar)
+                                    : row.gambar;
+                            } catch (e) {
+                                images = [];
+                            }
+                        }
 
-                   let imageHtml = `<span class="text-muted">No Image</span>`;
+                        if (!images || images.length === 0) {
+                            return `
+                                <div style="width:80px;height:80px;background:#f1f1f1;border-radius:6px;
+                                            display:flex;align-items:center;justify-content:center;font-size:11px;color:#999;">
+                                    No Image
+                                </div>
+                            `;
+                        }
 
-if (images.length > 0) {
-    imageHtml = `
-        <div style="position:relative; display:inline-block;">
-            <img src="/storage/${images[0]}" width="80" style="border-radius:6px;">
-            ${images.length > 1 ? `<span style="
-                position:absolute;
-                bottom:0;
-                right:0;
-                background:black;
-                color:white;
-                font-size:10px;
-                padding:2px 5px;
-                border-radius:5px;">
-                +${images.length - 1}
-            </span>` : ''}
-        </div>
-    `;
-}
+                        let firstImage = images[0];
+
+                        return `
+                            <div style="position:relative; display:inline-block;">
+                                <img src="/storage/${firstImage}" width="80"
+                                     style="border-radius:6px; object-fit:cover; height:80px;">
+                                
+                                ${images.length > 1 ? `
+                                    <span style="
+                                        position:absolute;
+                                        bottom:0;
+                                        right:0;
+                                        background:black;
+                                        color:white;
+                                        font-size:10px;
+                                        padding:2px 5px;
+                                        border-radius:5px;">
+                                        +${images.length - 1}
+                                    </span>
+                                ` : ''}
+                            </div>
+                        `;
+                    }
+
+                    // 🔥 PENTING: PAKAI FUNCTION INI
+                    let imageHtml = renderGambar(value);
 
                     let barang = `
                         <tr class="barang-row" id="index_${value.id}">
@@ -118,7 +132,7 @@ if (images.length > 0) {
         });
     }
 
-    // 🔥 INIT LOAD
+    // INIT
     loadData();
 
 });
@@ -283,8 +297,9 @@ $(document).on('click', '#button_detail_barang', function () {
             $('#detail_stok_minimum').text(data.stok_minimum ?? 0);
 
             let desc = data.deskripsi || '-';
-            $('#detail_deskripsi').text(desc.replace(/,/g, '<br>'));
-                setupReadMore();
+            loadDeskripsi(desc);   // 🔥 pakai ini saja
+
+
 
             // ================= RELASI =================
             $('#detail_jenis').text(data.jenis?.jenis_barang ?? '-');
@@ -406,40 +421,6 @@ $('#modal_detail_barang').on('hidden.bs.modal', function () {
     $('#slider_images').css('transform', 'translateX(0)');
 });
 
-function setupReadMore() {
-    const desc = document.getElementById("detail_deskripsi");
-    const btn = document.getElementById("btn_readmore");
-
-    // reset
-    desc.classList.remove("expanded");
-    desc.classList.add("collapsed");
-    btn.innerText = "Read More";
-
-    setTimeout(() => {
-        if (desc.scrollHeight > desc.clientHeight) {
-            btn.style.display = "inline-block";
-        } else {
-            btn.style.display = "none";
-        }
-    }, 50);
-
-    btn.onclick = function () {
-
-        if (desc.classList.contains("collapsed")) {
-            desc.classList.remove("collapsed");
-            desc.classList.add("expanded");
-            btn.innerText = "Read Less";
-        } else {
-            desc.classList.remove("expanded");
-            desc.classList.add("collapsed");
-            btn.innerText = "Read More";
-
-            // optional: scroll balik ke atas
-            desc.scrollTop = 0;
-        }
-    };
-
-}
 </script>
 
  <!-- Show Edit Data Barang -->
@@ -661,6 +642,39 @@ $('body').on('click', '#button_hapus_barang', function () {
 function setCetakPdf(id) {
     const btn = document.getElementById('btnCetakPdf');
     btn.href = `/barang/cetak-pdf/${id}`;
+}
+</script>
+
+<!-- Read More -->
+<script>
+function loadDeskripsi(text) {
+
+    const desc = document.getElementById("detail_deskripsi");
+    const btn  = document.getElementById("btn_readmore");
+
+    if (!desc || !btn) return;
+
+    // isi + jaga line break
+    desc.innerHTML = (text || '-').replace(/\n/g, '<br>');
+
+    // reset
+    desc.classList.remove("open");
+    btn.innerText = "Read More";
+    btn.style.display = "inline-block";
+
+    // cek overflow (akurat)
+    requestAnimationFrame(() => {
+        const isOverflow = desc.scrollHeight > desc.clientHeight + 2;
+        if (isOverflow) {
+            btn.style.display = "inline-block";
+        }
+    });
+
+    // toggle
+    btn.onclick = function () {
+        const open = desc.classList.toggle("open");
+        btn.innerText = open ? "Read Less" : "Read More";
+    };
 }
 </script>
 @endsection

@@ -53,12 +53,12 @@ class SupplierController extends Controller
             ], 401);
         }
 
-        $supplier = Supplier::create([
-            'supplier'  => $request->supplier,
-            'alamat'    => $request->alamat,
-            'deskripsi' => $request->deskripsi,
-            'user_id'   => $userId
-        ]);
+      $supplier = Supplier::create([
+    'supplier'   => $request->supplier,
+    'alamat'     => $request->alamat,
+    'deskripsi'  => $request->deskripsi,
+    'user_id'    => auth()->id() ?? 1,
+]);
 
         return response()->json([
             'success' => true,

@@ -4,7 +4,7 @@
 
       <!-- HEADER -->
       <div class="modal-header clean-header">
-        <h5>Detail Barang</h5>
+        <h4>Detail Barang</h5>
         <button type="button" class="close" data-dismiss="modal">&times;</button>
       </div>
 
@@ -34,15 +34,15 @@
 
           <!-- RIGHT -->
         <div class="right-panel">
-
-            <h3 id="detail_nama_barang" class="title-main">-</h3>
-
-            <div class="info-list">
-         <a href="#" id="btnCetakPdf" class="btn btn-danger">
+<div class="info-list">
+         <a href="#" id="btnCetakPdf" class="btn btn-danger" style="border-bottom-right-radius: 20px; margin-bottom: 20px;">
   <i class="fas fa-file-pdf"></i> Cetak PDF
 </a>
+            <h3 id="detail_nama_barang" class="title-main">-</h3>
 
-  <div>
+            
+
+  <div style="margin-top: 15px;">
 
     <span>
       <i class="fas fa-tags icon-info"></i>
@@ -77,18 +77,17 @@
 
 </div>
 <br>
-           <div class="desc-section">
+        <div class="desc-section">
 
   <div class="label" style="font-size: 17px">
     <i class="fas fa-align-left icon-label"></i>
     Deskripsi :
   </div>
-
-  <div id="detail_deskripsi" class="desc-text collapsed" style="margin-top: 10px"></div>
-
-  <button id="btn_readmore" class="btn-readmore" style="display:none;">
+<br>
+  <div id="detail_deskripsi" class="desc-text"></div>
+<button id="btn_readmore" class="btn-readmore">
     Read More
-  </button>
+</button>
 
 </div>
 
@@ -131,11 +130,10 @@
   border-bottom: 1px solid #eee;
 }
 
-/* BODY */
 .clean-body {
   flex: 1;
   padding: var(--modal-padding);
-  overflow: hidden;
+  overflow-y: auto; /* 🔥 FIX UTAMA */
 }
 
 /* LAYOUT */
@@ -157,6 +155,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
+  margin-right: 13px;
 }
 
 /* IMAGE */
@@ -223,35 +222,27 @@
 
 /* DESC */
 .desc-text {
-  line-height: 1.7;
-  color: #444;
-  margin-bottom: 8px;
-
-  white-space: pre-line; /* 🔥 KUNCI UTAMA */
+    max-height: 55px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    line-height: 1.5;
 }
 
-/* MODE COLLAPSED */
-.desc-text.collapsed {
-  display: -webkit-box;
-  -webkit-line-clamp: 4;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+/* STATE OPEN */
+.desc-text.open {
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 6px;
+     max-height: 1000px;
 }
 
-/* MODE EXPANDED (🔥 kunci utama) */
-.desc-text.expanded {
-  max-height: 255px; /* batas tinggi setelah expand */
-  overflow-y: auto;
-  padding-right: 6px;
+/* SCROLLBAR HALUS */
+.desc-text.open::-webkit-scrollbar {
+    width: 6px;
 }
-
-/* OPTIONAL: scrollbar lebih halus */
-.desc-text.expanded::-webkit-scrollbar {
-  width: 6px;
-}
-.desc-text.expanded::-webkit-scrollbar-thumb {
-  background: #ccc;
-  border-radius: 10px;
+.desc-text.open::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 10px;
 }
 
 .btn-readmore {
@@ -261,7 +252,7 @@
   font-weight: 500;
   border-radius: 8px;
   border: 1px solid #e5e7eb;
-  background: #4f46e5;
+  background: #767681;
   color: white;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -269,8 +260,8 @@
 
 /* hover */
 .btn-readmore:hover {
-  background: #4f46e5;
-  color:  #111827;
+  background: #0a0a0c;
+  color:  #ffffff;
   border-color: #4f46e5;
 }
 
@@ -334,3 +325,4 @@
   }
 }
 </style>
+

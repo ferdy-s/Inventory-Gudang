@@ -92,11 +92,20 @@ Route::middleware('auth')->group(function () {
         Route::get('/customer/get-data', [CustomerController::class, 'getDataCustomer']);
         Route::resource('/customer', CustomerController::class);
 
-        Route::get('/api/barang-masuk/', [BarangMasukController::class, 'getAutoCompleteData']);
-        Route::get('/barang-masuk/get-data', [BarangMasukController::class, 'getDataBarangMasuk']);
-        Route::get('/api/satuan/', [BarangMasukController::class, 'getSatuan']);
-        Route::resource('/barang-masuk', BarangMasukController::class);
+       Route::get('/api/barang-masuk', [BarangMasukController::class, 'getAutoCompleteData']);
 
+Route::get('/barang-masuk/get-data', [BarangMasukController::class, 'getDataBarangMasuk']);
+
+// 🔥 FIX 1: GANTI URL API SATUAN (JANGAN DUPLIKAT)
+Route::get('/api/satuan-masuk', [BarangMasukController::class, 'getSatuan']);
+
+// 🔥 FIX 2: TAMBAHKAN ROUTE INI (WAJIB DI ATAS RESOURCE)
+Route::get('/barang-masuk/get-barang-detail', [BarangMasukController::class, 'getBarangDetail']);
+
+// 🔥 FIX 3: RESOURCE DI PALING BAWAH
+Route::resource('/barang-masuk', BarangMasukController::class)
+    ->where(['barang_masuk' => '[0-9]+']);
+    
         Route::get('/api/barang-keluar/', [BarangKeluarController::class, 'getAutoCompleteData']);
         Route::get('/barang-keluar/get-data', [BarangKeluarController::class, 'getDataBarangKeluar']);
         Route::get('/api/satuan/', [BarangKeluarController::class, 'getSatuan']);

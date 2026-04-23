@@ -40,34 +40,52 @@
 
 
     <!-- Select2 Autocomplete -->
-    <script>
-       $(document).ready(function() {
+   <script>
+$(document).ready(function() {
 
-    $('.js-example-basic-single').select2();
+    // init select2 (pakai class Anda)
+    $('.js-example-basic-single, #barang_id, #supplier_id').select2({
+        dropdownParent: $('#modal_tambah_barangMasuk'),
+        width: '100%'
+    });
 
-    $('#barang_id').on('change', function () {
+    // 🔥 EVENT FIX
+    $('#barang_id').on('select2:select change', function (e) {
 
         let barang_id = $(this).val();
 
-        if (!barang_id) return;
+        console.log("ID:", barang_id); // debug
+
+        if (!barang_id) {
+            $('#stok').val('');
+            $('#satuan_text').text('-');
+            return;
+        }
 
         $.ajax({
-            url: '/api/barang-detail', // ✅ endpoint baru
+            url: '/barang-masuk/get-barang-detail', // ✅ FIX URL
             type: 'GET',
             data: { barang_id: barang_id },
 
             success: function (response) {
 
-                $('#stok').val(response.stok ?? 0);
-                $('#satuan_id').val(response.satuan ?? '');
+                console.log("RES:", response); // debug
 
+                // ✅ FIX TARGET
+                $('#stok').val(response.stok ?? 0);
+                $('#satuan_text').text(response.satuan ?? '-');
+
+            },
+
+            error: function (xhr) {
+                console.log("ERROR:", xhr.responseText);
             }
         });
 
     });
 
 });
-    </script>
+</script>
 
     <!-- Datatable -->
     <script>

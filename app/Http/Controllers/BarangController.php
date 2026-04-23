@@ -214,32 +214,44 @@ class BarangController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Barang $barang)
-    {
-        // ambil semua gambar (array)
-        $images = json_decode($barang->gambar, true);
+  public function destroy($id)
+{
+    try {
+        $barang = Barang::find($id);
 
-        // cek dan hapus satu per satu
-        if ($images && is_array($images)) {
-            foreach ($images as $img) {
-                if (Storage::exists('public/' . $img)) {
-                    Storage::delete('public/' . $img);
-                }
-            }
+        if (!$barang) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data tidak ditemukan'
+            ], 404);
         }
 
-        // hapus data barang
+        // 🔥 OPTIONAL: hapus relasi manual (kalau ada)
+        // DB::table('barang_masuks')->where('barang_id', $id)->delete();
+        // DB::table('barang_keluars')->where('barang_id', $id)->delete();
+
         $barang->delete();
 
         return response()->json([
             'success' => true,
-            'message' => 'Data Barang Berhasil Dihapus!'
+            'message' => 'Data berhasil dihapus'
         ]);
+
+    } catch (\Exception $e) {
+
+        // 🔥 DEBUG REAL ERROR
+        return response()->json([
+            'success' => false,
+            'error' => $e->getMessage(),
+            'line' => $e->getLine(),
+            'file' => $e->getFile()
+        ], 500);
     }
+}
 
     public function cetakPdf($id)
     {
-        $item = Barang::with(['jenis', 'satuan', 'supplier'])->findOrFail($id);
+        $item = Barang::with(['jenis', 'satuan', 'lastBarangMasuk.supplier'])->findOrFail($id);
 
         $pdf = Pdf::loadView('pdf.barang', compact('item'));
 

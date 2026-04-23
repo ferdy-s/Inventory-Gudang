@@ -23,7 +23,15 @@ class Barang extends Model
     protected $casts = [
         'gambar' => 'array',
     ];
+public function barangMasuks()
+{
+    return $this->hasMany(\App\Models\BarangMasuk::class, 'barang_id');
+}
 
+public function lastBarangMasuk()
+{
+    return $this->hasOne(\App\Models\BarangMasuk::class, 'barang_id')->latestOfMany();
+}
 
     public function getActivitylogAttributes(): array
     {

@@ -38,29 +38,37 @@ class SatuanController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
-    {
+ public function store(Request $request)
+{
+    try {
+
         $validator = Validator::make($request->all(), [
-            'satuan'  => 'required'
-        ],[
+            'satuan' => 'required'
+        ], [
             'satuan.required' => 'Form Satuan Barang Wajib Di Isi !'
         ]);
 
-        if($validator->fails()){
+        if ($validator->fails()) {
             return response()->json($validator->errors(), 422);
         }
 
         $satuan = Satuan::create([
-            'satuan'    => $request->satuan,
-            'user_id'   => auth()->user()->id
+            'satuan'  => $request->satuan,
+            'user_id' => auth()->id() // 🔥 WAJIB pakai ini
         ]);
 
         return response()->json([
-            'success'   => true,
-            'message'   => 'Data Berhasil Disimpan !',
-            'data'      => $satuan
+            'success' => true,
+            'message' => 'Data Berhasil Disimpan !',
+            'data'    => $satuan
         ]);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => $e->getMessage()
+        ], 500);
     }
+}
 
     /**
      * Display the specified resource.

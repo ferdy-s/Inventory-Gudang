@@ -69,13 +69,18 @@
                     });
 
                     function getSatuanName(satuanId, callback) {
-                        $.getJSON('{{ url('api/satuan') }}', function(satuans) {
-                            var satuan = satuans.find(function(s) {
-                                return s.id === satuanId;
-                            });
-                            callback(satuan ? satuan.satuan : '');
-                        });
-                    }
+
+    $.getJSON("{{ url('/api/satuan') }}", function(satuans) {
+
+        let satuan = satuans.find(function(s) {
+            return s.id == satuanId; // 🔥 pakai == biar tidak gagal type mismatch
+        });
+
+        callback(satuan ? satuan.satuan : '');
+
+    });
+
+}
                 });
             }, 500);
         });

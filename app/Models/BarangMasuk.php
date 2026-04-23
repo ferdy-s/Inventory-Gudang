@@ -9,6 +9,7 @@ use Spatie\Activitylog\LogOptions;
 
 class BarangMasuk extends Model
 {
+     protected $appends = ['nama_barang', 'satuan', 'stok'];
     use HasFactory, LogsActivity;
 
     protected $fillable = [
