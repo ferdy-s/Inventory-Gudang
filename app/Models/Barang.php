@@ -25,12 +25,12 @@ class Barang extends Model
     ];
 public function barangMasuks()
 {
-    return $this->hasMany(\App\Models\BarangMasuk::class, 'barang_id');
+    return $this->hasMany(BarangMasuk::class, 'barang_id');
 }
 
 public function lastBarangMasuk()
 {
-    return $this->hasOne(\App\Models\BarangMasuk::class, 'barang_id')->latestOfMany();
+    return $this->hasOne(BarangMasuk::class, 'barang_id')->latestOfMany();
 }
 
     public function getActivitylogAttributes(): array

@@ -74,7 +74,6 @@
   </div>
 </div>
 
-<!-- Styling tambahan modern 2025 -->
 <style>
   input.form-control, select.form-control, textarea.form-control {
     border-radius: 10px;
